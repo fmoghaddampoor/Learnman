@@ -65,9 +65,11 @@
             </div>
 
             <div class="chat-messages" id="chat-scroll">
+                @{ var msgIndex = 0; }
                 @foreach (var msg in Messages)
                 {
-                    <div class="message @(msg.Role == "user" ? "user-msg" : "bot-msg")">
+                    var isFirst = msgIndex == 0;
+                    <div class="message @(msg.Role == "user" ? "user-msg" : "bot-msg") @(isFirst ? "first-msg" : "")">
                         <div class="msg-bubble glass-panel" data-tooltip="@msg.Translation">
                             @((MarkupString)ParseContent(msg.Content))
                             @if (msg.Role == "user" && msg.Score != 0)
@@ -78,6 +80,7 @@
                             }
                         </div>
                     </div>
+                    msgIndex++;
                 }
                 @if (IsTyping)
                 {
@@ -315,6 +318,14 @@
         transform: translateX(-50%) !important;
     }
 
+    /* FIRST message: Tooltip BELOW to avoid being cut off at top */
+    .first-msg .msg-bubble[data-tooltip]:hover::after {
+        bottom: auto !important;
+        top: 100% !important;
+        margin-bottom: 0 !important;
+        margin-top: 15px !important;
+    }
+
     .user-msg .msg-bubble[data-tooltip]:hover::after {
         left: auto !important;
         right: 0 !important;
@@ -521,6 +532,40 @@
         80% { transform: translateY(-100px) scale(1); opacity: 1; }
         100% { transform: translateY(-150px) scale(0.8); opacity: 0; }
     }
+
+    /* ✨ Light Mode Overrides for Chat */
+    @@media (prefers-color-scheme: light) {
+        .msg-bubble {
+            background: rgba(0, 0, 0, 0.04);
+            color: #1e1b4b;
+        }
+
+        .user-msg .msg-bubble {
+            background: linear-gradient(135deg, #7c3aed, #db2777);
+            color: white;
+        }
+
+        [data-tooltip]:hover::after {
+            background: rgba(255, 255, 255, 0.98);
+            color: #1e1b4b;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .btn-suggestion {
+            background: rgba(124, 58, 237, 0.08);
+            color: #1e1b4b;
+            border-color: rgba(124, 58, 237, 0.2);
+        }
+
+        .btn-suggestion:hover {
+            background: rgba(124, 58, 237, 0.15);
+        }
+
+        .chat-input {
+            background: rgba(255, 255, 255, 0.9);
+        }
+    }
 </style>
 
 @code {
@@ -658,14 +703,16 @@
                 if (response.IsCorrect.Value)
                 {
                     if (lastUserMsg != null) lastUserMsg.Score = 3;
-                    UserPoints = await AuthService.UpdatePointsAsync(3);
+                    var newPoints = await AuthService.UpdatePointsAsync(3);
+                    UserPoints = newPoints > 0 ? newPoints : UserPoints + 3; // Fallback for no login
                     PointsAnimationClass = "anim-bump";
                     AddFloatingNotif("+3", "f-plus");
                 }
                 else 
                 {
                     if (lastUserMsg != null) lastUserMsg.Score = -1;
-                    UserPoints = await AuthService.UpdatePointsAsync(-1);
+                    var newPoints = await AuthService.UpdatePointsAsync(-1);
+                    UserPoints = newPoints >= 0 && AuthService.CurrentUser != null ? newPoints : Math.Max(0, UserPoints - 1);
                     PointsAnimationClass = "anim-shake";
                     AddFloatingNotif("-1", "f-minus");
                 }

@@ -5,6 +5,29 @@
         @Body
     </main>
     
+    <!-- Theme Picker -->
+    <div class="theme-picker">
+        <button class="theme-picker-btn" onclick="toggleThemePicker()" title="Change Theme">🎨</button>
+        <div id="theme-picker-menu" class="theme-picker-menu">
+            <button class="theme-option" data-theme="light" onclick="setTheme('light')">
+                <span class="theme-dot theme-dot-light"></span> Light
+            </button>
+            <button class="theme-option" data-theme="dark" onclick="setTheme('dark')">
+                <span class="theme-dot theme-dot-dark"></span> Dark
+            </button>
+            <button class="theme-option" data-theme="sunset" onclick="setTheme('sunset')">
+                <span class="theme-dot theme-dot-sunset"></span> Sunset
+            </button>
+            <button class="theme-option" data-theme="ocean" onclick="setTheme('ocean')">
+                <span class="theme-dot theme-dot-ocean"></span> Ocean
+            </button>
+            <button class="theme-option" data-theme="forest" onclick="setTheme('forest')">
+                <span class="theme-dot theme-dot-forest"></span> Forest
+            </button>
+        </div>
+    </div>
+    
+    <!-- DB Viewer -->
     <a href="db-viewer" class="btn-db-viewer" title="View Database">
         🗄️ DB
     </a>
@@ -34,11 +57,11 @@
     .btn-db-viewer {
         position: fixed;
         bottom: 20px;
-        right: 20px;
-        background: rgba(139, 92, 246, 0.2);
+        right: 80px; /* Moved left to avoid theme picker */
+        background: var(--bg-glass);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: white;
+        border: 1px solid var(--border-glass);
+        color: var(--text-primary);
         padding: 10px 15px;
         border-radius: 30px;
         text-decoration: none;
@@ -53,7 +76,8 @@
     
     .btn-db-viewer:hover {
         background: var(--accent-primary);
+        color: white;
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+        box-shadow: 0 5px 15px var(--accent-glow);
     }
 </style>

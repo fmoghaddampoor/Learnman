@@ -1,15 +1,43 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap');
 
-:root {
-    /* Premium Palette - Dark & Seductive */
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME SYSTEM - 5 Premium Themes
+   Light is the default. Apply data-theme="dark|sunset|ocean|forest" to <html>
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root,
+[data-theme="light"] {
+    /* ✨ LIGHT THEME (Default) - Clean & Professional */
+    --bg-primary: #faf7f5;
+    --bg-secondary: #ffffff;
+    --bg-glass: rgba(255, 255, 255, 0.85);
+    --bg-gradient-1: rgba(124, 58, 237, 0.08);
+    --bg-gradient-2: rgba(219, 39, 119, 0.08);
+
+    --accent-primary: #7c3aed;
+    --accent-secondary: #db2777;
+    --accent-glow: rgba(124, 58, 237, 0.25);
+
+    --text-primary: #1e1b4b;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+
+    --border-glass: rgba(0, 0, 0, 0.08);
+    --input-bg: rgba(255, 255, 255, 0.9);
+    --input-text: #1e1b4b;
+    --shadow-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] {
+    /* 🌙 DARK THEME - Seductive Purple */
     --bg-primary: #0f0c1a;
     --bg-secondary: #1a162e;
     --bg-glass: rgba(26, 22, 46, 0.7);
+    --bg-gradient-1: rgba(139, 92, 246, 0.15);
+    --bg-gradient-2: rgba(236, 72, 153, 0.15);
 
     --accent-primary: #8b5cf6;
-    /* Violet */
     --accent-secondary: #ec4899;
-    /* Pink/Magenta for "Seductive" feel */
     --accent-glow: rgba(139, 92, 246, 0.4);
 
     --text-primary: #ffffff;
@@ -17,11 +45,85 @@
     --text-muted: #64748b;
 
     --border-glass: rgba(255, 255, 255, 0.1);
+    --input-bg: rgba(0, 0, 0, 0.2);
+    --input-text: #ffffff;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+}
 
+[data-theme="sunset"] {
+    /* 🌅 SUNSET THEME - Warm & Romantic */
+    --bg-primary: #1a1412;
+    --bg-secondary: #2a1f1a;
+    --bg-glass: rgba(42, 31, 26, 0.7);
+    --bg-gradient-1: rgba(251, 146, 60, 0.15);
+    --bg-gradient-2: rgba(244, 63, 94, 0.15);
+
+    --accent-primary: #fb923c;
+    --accent-secondary: #f43f5e;
+    --accent-glow: rgba(251, 146, 60, 0.4);
+
+    --text-primary: #fef3c7;
+    --text-secondary: #d6b89f;
+    --text-muted: #a8856c;
+
+    --border-glass: rgba(255, 200, 150, 0.1);
+    --input-bg: rgba(0, 0, 0, 0.2);
+    --input-text: #fef3c7;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="ocean"] {
+    /* 🌊 OCEAN THEME - Cool & Refreshing */
+    --bg-primary: #0c1929;
+    --bg-secondary: #132337;
+    --bg-glass: rgba(19, 35, 55, 0.7);
+    --bg-gradient-1: rgba(14, 165, 233, 0.15);
+    --bg-gradient-2: rgba(20, 184, 166, 0.15);
+
+    --accent-primary: #0ea5e9;
+    --accent-secondary: #14b8a6;
+    --accent-glow: rgba(14, 165, 233, 0.4);
+
+    --text-primary: #e0f2fe;
+    --text-secondary: #7dd3fc;
+    --text-muted: #38bdf8;
+
+    --border-glass: rgba(125, 211, 252, 0.1);
+    --input-bg: rgba(0, 0, 0, 0.2);
+    --input-text: #e0f2fe;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="forest"] {
+    /* 🌲 FOREST THEME - Earthy & Natural */
+    --bg-primary: #0f1a14;
+    --bg-secondary: #1a2a1f;
+    --bg-glass: rgba(26, 42, 31, 0.7);
+    --bg-gradient-1: rgba(34, 197, 94, 0.15);
+    --bg-gradient-2: rgba(132, 204, 22, 0.15);
+
+    --accent-primary: #22c55e;
+    --accent-secondary: #84cc16;
+    --accent-glow: rgba(34, 197, 94, 0.4);
+
+    --text-primary: #dcfce7;
+    --text-secondary: #86efac;
+    --text-muted: #4ade80;
+
+    --border-glass: rgba(134, 239, 172, 0.1);
+    --input-bg: rgba(0, 0, 0, 0.2);
+    --input-text: #dcfce7;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BASE STYLES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
     --radius-sm: 8px;
     --radius-md: 16px;
     --radius-lg: 24px;
-
     --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -39,8 +141,9 @@ body {
     min-height: 100vh;
     overflow-x: hidden;
     background-image:
-        radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
-        radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.15) 0%, transparent 40%);
+        radial-gradient(circle at 10% 20%, var(--bg-gradient-1) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, var(--bg-gradient-2) 0%, transparent 40%);
+    transition: background-color var(--transition-smooth), color var(--transition-smooth);
 }
 
 /* Typography */
@@ -57,7 +160,7 @@ h6 {
 
 h1 {
     font-size: 3.5rem;
-    background: linear-gradient(to right, #fff, var(--accent-primary));
+    background: linear-gradient(to right, var(--text-primary), var(--accent-primary));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -83,7 +186,7 @@ p {
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--border-glass);
     border-radius: var(--radius-md);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 32px 0 var(--shadow-color);
 }
 
 .btn-primary {
@@ -126,12 +229,12 @@ p {
     -webkit-text-fill-color: transparent;
 }
 
-/* Accessbility & Forms */
+/* Forms */
 input,
 select {
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--input-bg);
     border: 1px solid var(--border-glass);
-    color: white;
+    color: var(--input-text);
     padding: 12px 16px;
     border-radius: var(--radius-sm);
     width: 100%;
@@ -163,7 +266,7 @@ select:focus {
     animation: fadeIn 0.6s ease-out forwards;
 }
 
-/* Blazor Specific overrides */
+/* Blazor Specific */
 #blazor-error-ui {
     background: var(--accent-secondary);
     bottom: 0;
@@ -174,4 +277,105 @@ select:focus {
     position: fixed;
     width: 100%;
     z-index: 1000;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME PICKER COMPONENT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.theme-picker {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.theme-picker-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 20px var(--accent-glow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    transition: var(--transition-fast);
+}
+
+.theme-picker-btn:hover {
+    transform: scale(1.1);
+}
+
+.theme-picker-menu {
+    position: absolute;
+    bottom: 60px;
+    right: 0;
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-md);
+    padding: 8px;
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 140px;
+    box-shadow: 0 8px 32px var(--shadow-color);
+}
+
+.theme-picker-menu.open {
+    display: flex;
+}
+
+.theme-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: var(--transition-fast);
+    font-family: inherit;
+    font-size: 0.95rem;
+}
+
+.theme-option:hover {
+    background: var(--accent-glow);
+}
+
+.theme-option.active {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.theme-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.theme-dot-light {
+    background: linear-gradient(135deg, #7c3aed, #db2777);
+}
+
+.theme-dot-dark {
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+}
+
+.theme-dot-sunset {
+    background: linear-gradient(135deg, #fb923c, #f43f5e);
+}
+
+.theme-dot-ocean {
+    background: linear-gradient(135deg, #0ea5e9, #14b8a6);
+}
+
+.theme-dot-forest {
+    background: linear-gradient(135deg, #22c55e, #84cc16);
 }
