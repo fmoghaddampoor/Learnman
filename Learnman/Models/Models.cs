@@ -17,6 +17,7 @@ public class ChatMessage
     public string Role { get; set; } = "user"; // "user" or "assistant"
     public string Content { get; set; } = "";
     public string? Translation { get; set; }
+    public int Score { get; set; } // Points earned for this message
     public DateTime Timestamp { get; set; } = DateTime.Now;
 }
 

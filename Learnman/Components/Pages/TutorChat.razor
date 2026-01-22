@@ -70,6 +70,12 @@
                     <div class="message @(msg.Role == "user" ? "user-msg" : "bot-msg")">
                         <div class="msg-bubble glass-panel" data-tooltip="@msg.Translation">
                             @((MarkupString)ParseContent(msg.Content))
+                            @if (msg.Role == "user" && msg.Score != 0)
+                            {
+                                <div class="bubble-points @(msg.Score > 0 ? "plus" : "minus")">
+                                    @(msg.Score > 0 ? "+" : "")@msg.Score
+                                </div>
+                            }
                         </div>
                     </div>
                 }
@@ -300,23 +306,24 @@
         white-space: normal;
     }
 
-    /* Messages: Tooltip BELOW the bubble */
+    /* Messages: Tooltip ABOVE the bubble to avoid mouse flickering */
     .msg-bubble[data-tooltip]:hover::after {
-        top: 100%;
-        margin-top: 10px;
-        left: 50%;
-        transform: translateX(-50%);
+        bottom: 100% !important;
+        top: auto !important;
+        margin-bottom: 15px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
     }
 
     .user-msg .msg-bubble[data-tooltip]:hover::after {
-        left: auto;
-        right: 0;
-        transform: none;
+        left: auto !important;
+        right: 0 !important;
+        transform: none !important;
     }
 
     .bot-msg .msg-bubble[data-tooltip]:hover::after {
-        left: 0;
-        transform: none;
+        left: 0 !important;
+        transform: none !important;
     }
 
     /* Suggestions: Tooltip ABOVE the button */
@@ -445,6 +452,21 @@
         justify-content: center;
     }
 
+    .bubble-points {
+        position: absolute;
+        bottom: 5px;
+        right: 10px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 8px;
+        opacity: 0.8;
+    }
+    .bubble-points.plus { background: #4ade80; color: #064e3b; }
+    .bubble-points.minus { background: #ef4444; color: #ffffff; }
+
+    .user-msg .msg-bubble { padding-bottom: 25px; } /* Space for points */
+
     /* Point System Styles */
     .header-points {
         display: flex;
@@ -543,15 +565,37 @@
         SelectedCharacter = character;
         Messages.Clear();
         CurrentSuggestions.Clear();
-        // Initial greeting
-        var greeting = $"*looks at you intriguingly* Hello, student. I am {character.Name}. Ready to learn {character.Language}?";
-        Messages.Add(new ChatMessage { Role = "assistant", Content = greeting, Translation = "Ti guardo con curiosità. Ciao, studente. Sono Isabella. Sei pronto ad imparare l'italiano?" });
-        CurrentSuggestions = new List<ChatSuggestion> 
-        { 
-            new ChatSuggestion { Text = "I am ready!", Translation = "Sono pronto!" },
-            new ChatSuggestion { Text = "Help me with my Italian.", Translation = "Aiutami con il mio italiano." },
-            new ChatSuggestion { Text = "Who are you exactly?", Translation = "Chi sei esattamente?" }
-        };
+        
+        // Initial greeting - Tailored to language (Defaulting to Italian/English mix if not specialized)
+        string greeting = "";
+        string translation = "";
+        var suggestions = new List<ChatSuggestion>();
+
+        if (character.Language.Equals("Italian", StringComparison.OrdinalIgnoreCase))
+        {
+            greeting = $"*ti guarda con curiosità* Ciao, studente. Sono {character.Name}. Sei pronto ad imparare l'italiano?";
+            translation = "Looks at you intriguingly. Hello, student. I am " + character.Name + ". Are you ready to learn Italian?";
+            suggestions = new List<ChatSuggestion> 
+            { 
+                new ChatSuggestion { Text = "Sono pronto!", Translation = "I am ready!" },
+                new ChatSuggestion { Text = "Aiutami con il mio italiano.", Translation = "Help me with my Italian." },
+                new ChatSuggestion { Text = "Chi sei esattamente?", Translation = "Who are you exactly?" }
+            };
+        }
+        else 
+        {
+            greeting = $"*looks at you intriguingly* Hello, student. I am {character.Name}. Ready to learn {character.Language}?";
+            translation = greeting; // English default
+            suggestions = new List<ChatSuggestion> 
+            { 
+                new ChatSuggestion { Text = "I am ready!", Translation = "I am ready!" },
+                new ChatSuggestion { Text = "Help me with my language.", Translation = "Help me with my language." },
+                new ChatSuggestion { Text = "Who are you exactly?", Translation = "Who are you exactly?" }
+            };
+        }
+
+        Messages.Add(new ChatMessage { Role = "assistant", Content = greeting, Translation = translation });
+        CurrentSuggestions = suggestions;
     }
     
     // (API Key logic removed - using hardcoded ApiSecrets.cs)
@@ -599,32 +643,36 @@
         
         IsTyping = false;
         
-        // Handle Points and User Translation
-        if (response.IsCorrect.HasValue)
-        {
-            // Update user message translation if it's missing
+            // Handle Points and User Translation
+            // Find the SPECIFIC message we just added (it's the last user message)
             var lastUserMsg = Messages.LastOrDefault(m => m.Role == "user");
-            if (lastUserMsg != null && string.IsNullOrEmpty(lastUserMsg.Translation))
-            {
-                lastUserMsg.Translation = response.UserMessageTranslation;
-            }
 
-            if (response.IsCorrect.Value)
+            if (response.IsCorrect.HasValue)
             {
-                UserPoints = await AuthService.UpdatePointsAsync(3);
-                PointsAnimationClass = "anim-bump";
-                AddFloatingNotif("+3", "f-plus");
+                // Update user message translation if it's missing
+                if (lastUserMsg != null && string.IsNullOrEmpty(lastUserMsg.Translation))
+                {
+                    lastUserMsg.Translation = response.UserMessageTranslation;
+                }
+
+                if (response.IsCorrect.Value)
+                {
+                    if (lastUserMsg != null) lastUserMsg.Score = 3;
+                    UserPoints = await AuthService.UpdatePointsAsync(3);
+                    PointsAnimationClass = "anim-bump";
+                    AddFloatingNotif("+3", "f-plus");
+                }
+                else 
+                {
+                    if (lastUserMsg != null) lastUserMsg.Score = -1;
+                    UserPoints = await AuthService.UpdatePointsAsync(-1);
+                    PointsAnimationClass = "anim-shake";
+                    AddFloatingNotif("-1", "f-minus");
+                }
+                StateHasChanged();
+                await Task.Delay(1000);
+                PointsAnimationClass = "";
             }
-            else 
-            {
-                UserPoints = await AuthService.UpdatePointsAsync(-1);
-                PointsAnimationClass = "anim-shake";
-                AddFloatingNotif("-1", "f-minus");
-            }
-            StateHasChanged();
-            await Task.Delay(1000);
-            PointsAnimationClass = "";
-        }
 
         Messages.Add(new ChatMessage { Role = "assistant", Content = response.Message, Translation = response.MessageTranslation });
         CurrentSuggestions = response.Suggestions;
@@ -645,6 +693,8 @@
         // Common actions to emojis
         var replacements = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
+            {"*looks at you intriguingly*", "😏"},
+            {"*ti guarda con curiosità*", "😏"},
             {"*wink*", "😉"},
             {"*winks*", "😉"},
             {"*smile*", "😊"},
@@ -663,6 +713,11 @@
             {"*frowns*", "☹️"},
             {"*grin*", "😁"},
             {"*grins*", "😁"},
+            {":\\", "😕"},
+            {":)", "😊"},
+            {":(", "☹️"},
+            {":D", "😁"},
+            {";)", "😉"},
             // Italian
             {"*sorride*", "😊"},
             {"*ride*", "😂"},

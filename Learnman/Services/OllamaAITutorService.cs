@@ -27,6 +27,7 @@ public class OllamaAITutorService : IAITutorService
         // System Prompt
         var systemPrompt = $"{character.SeductivePersonaPrompt} Current Student Context: Native Language: {_authService.CurrentUser?.NativeLanguage}, Target Language: {character.Language}. " +
                            "Keep responses short, flirtatious, and educational. Correct mistakes gently but seductively. " +
+                           "Use MANY emojis and express your emotions and physical reactions clearly (e.g., using *smiles*, *winks*, *giggles* or specific emojis like 😉, 🇮🇹, 🔥, ✨). " +
                            $"Your 'message' and the 'text' in 'suggestions' MUST BE ENTIRELY IN {character.Language.ToUpper()}. " +
                            "ALWAYS respond in strictly valid JSON format with exactly these keys: " +
                            "1. 'message': Your reply as the tutor in the target language. " +
