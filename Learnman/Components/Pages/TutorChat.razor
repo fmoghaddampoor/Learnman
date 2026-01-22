@@ -85,21 +85,8 @@
     }
 
     
-    @if (ShowApiKeyModal) 
-    {
-        <div class="modal-backdrop">
-            <div class="modal-glass animate-fade-in">
-                <h2>Connect Your <span class="text-gradient">Gemini</span></h2>
-                <p>To chat with @(SelectedCharacter?.Name ?? "me"), I need your API Key.</p>
-                <input type="password" @bind="NewApiKey" placeholder="Paste Gemini API Key here..." class="api-input" />
-                <div class="modal-actions">
-                    <button class="btn-secondary" @onclick="() => ShowApiKeyModal = false">Cancel</button>
-                    <button class="btn-primary" @onclick="SaveApiKey">Connect</button>
-                </div>
-                <small style="opacity:0.6; display:block; margin-top:10px;">Keys are stored locally in your database.</small>
-            </div>
-        </div>
     }
+    
 </div>
 
 <style>
@@ -339,12 +326,6 @@
         var allCharacters = AIService.GetCharacters();
         var userLang = AuthService.CurrentUser?.TargetLanguage;
         
-        // check for key
-        if (string.IsNullOrEmpty(AuthService.CurrentUser?.GeminiApiKey))
-        {
-            ShowApiKeyModal = true;
-        }
-
         if (!string.IsNullOrEmpty(userLang))
         {
              TargetLanguage = userLang;
@@ -361,40 +342,14 @@
 
     private void SelectCharacter(TutorCharacter character)
     {
-         if (string.IsNullOrEmpty(AuthService.CurrentUser?.GeminiApiKey))
-        {
-            ShowApiKeyModal = true;
-            return;
-        }
-        
         SelectedCharacter = character;
         Messages.Clear();
         // Initial greeting
         Messages.Add(new ChatMessage { Role = "assistant", Content = $"*looks at you intriguingly* Hello, student. I am {character.Name}. Ready to learn {character.Language}?" });
     }
     
-    @inject NavigationManager Nav
+    // (API Key logic removed - using hardcoded ApiSecrets.cs)
     
-    private async Task SaveApiKey()
-    {
-        if (!string.IsNullOrWhiteSpace(NewApiKey))
-        {
-            var u = AuthService.CurrentUser;
-            if (u == null)
-            {
-                // Session lost, redirect to login
-                Nav.NavigateTo("/"); 
-                return;
-            }
-
-            await AuthService.UpdateUserPreferencesAsync(u.NativeLanguage, u.Location, u.TargetLanguage, NewApiKey);
-            ShowApiKeyModal = false;
-            
-            // Auto-start chat with selected char if present, or just close
-            StateHasChanged();
-        }
-    }
-
     private async Task Enter(KeyboardEventArgs e)
     {
         if (e.Code == "Enter" || e.Code == "NumpadEnter")
