@@ -8,7 +8,7 @@
 @inject NavigationManager Nav
 @rendermode InteractiveServer
 
-<PageTitle>Private Lesson - LinguistAI</PageTitle>
+<PageTitle>Learnman</PageTitle>
 
 <div class="tutor-container">
     @if (SelectedCharacter == null)
@@ -141,8 +141,8 @@
     }
     
     .avatar-small {
-        width: 50px;
-        height: 50px;
+        width: 80px;
+        height: 80px;
         border-radius: 50%;
         object-fit: cover;
         border: 2px solid var(--accent-primary);
@@ -214,6 +214,23 @@
         display: flex;
         flex-direction: column;
         gap: 15px;
+        /* Custom Scrollbar */
+        scrollbar-width: thin;
+        scrollbar-color: var(--accent-primary) rgba(255,255,255,0.05);
+    }
+    
+    .chat-messages::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .chat-messages::-webkit-scrollbar-track {
+        background: rgba(255,255,255,0.05);
+        border-radius: 4px;
+    }
+    
+    .chat-messages::-webkit-scrollbar-thumb {
+        background-color: var(--accent-primary);
+        border-radius: 4px;
     }
     
     .message {
@@ -229,7 +246,7 @@
         max-width: 70%;
         border-radius: 20px;
         background: rgba(255,255,255,0.05);
-        font-size: 1.3rem; /* Further increased readability */
+        font-size: 1.4rem; /* Maximized readability */
         line-height: 1.6;
     }
     
@@ -244,6 +261,16 @@
         padding: 10px;
         display: flex;
         gap: 10px;
+    }
+
+    .chat-input input {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: white;
+        padding: 15px;
+        border-radius: var(--radius-sm);
+        flex: 1;
+        font-size: 1.4rem; /* Large input font */
     }
     
     .btn-send {
@@ -352,6 +379,17 @@
     
     // (API Key logic removed - using hardcoded ApiSecrets.cs)
     
+    private bool _shouldScroll = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_shouldScroll)
+        {
+            _shouldScroll = false;
+            await JS.InvokeVoidAsync("scrollToBottom", "chat-scroll");
+        }
+    }
+
     private async Task Enter(KeyboardEventArgs e)
     {
         if (e.Code == "Enter" || e.Code == "NumpadEnter")
@@ -370,6 +408,7 @@
         Messages.Add(new ChatMessage { Role = "user", Content = userMsg });
         
         IsTyping = true;
+        _shouldScroll = true; // Scroll for user message
         StateHasChanged();
 
         var response = await AIService.GetChatResponseAsync(userMsg, SelectedCharacter);
@@ -380,9 +419,10 @@
         // Trigger TTS (Fire and forget provided UI doesn't block)
         await TTSService.SynthesizeAsync(response, SelectedCharacter.VoiceId);
         
+        _shouldScroll = true; // Scroll for bot message
         StateHasChanged();
-        // Auto scroll would go here via JS Interop
     }
+    
     private string ParseContent(string content)
     {
         if (string.IsNullOrEmpty(content)) return "";
@@ -409,7 +449,14 @@
             {"*frown*", "☹️"},
             {"*frowns*", "☹️"},
             {"*grin*", "😁"},
-            {"*grins*", "😁"}
+            {"*grins*", "😁"},
+            // Italian
+            {"*sorride*", "😊"},
+            {"*ride*", "😂"},
+            {"*occhiolino*", "😉"},
+            {"*arrossisce*", "😳"},
+            {"*annuisce*", "😌"},
+            {"*sospira*", "😔"}
         };
 
         foreach (var kvp in replacements)

@@ -36,6 +36,8 @@ public class OpenRouterAITutorService : IAITutorService
 
         var freeModels = new[] 
         { 
+            "x-ai/grok-2-1212",
+            "x-ai/grok-beta",
             "google/gemini-2.0-flash-exp:free", 
             "google/gemini-exp-1206:free",
             "meta-llama/llama-3-8b-instruct:free", 
