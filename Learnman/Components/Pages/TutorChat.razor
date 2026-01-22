@@ -63,7 +63,7 @@
                 {
                     <div class="message @(msg.Role == "user" ? "user-msg" : "bot-msg")">
                         <div class="msg-bubble glass-panel">
-                            @msg.Content
+                            @((MarkupString)ParseContent(msg.Content))
                         </div>
                     </div>
                 }
@@ -229,6 +229,8 @@
         max-width: 70%;
         border-radius: 20px;
         background: rgba(255,255,255,0.05);
+        font-size: 1.3rem; /* Further increased readability */
+        line-height: 1.6;
     }
     
     .user-msg .msg-bubble {
@@ -380,5 +382,41 @@
         
         StateHasChanged();
         // Auto scroll would go here via JS Interop
+    }
+    private string ParseContent(string content)
+    {
+        if (string.IsNullOrEmpty(content)) return "";
+
+        var sb = new System.Text.StringBuilder(content);
+        
+        // Common actions to emojis
+        var replacements = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            {"*wink*", "😉"},
+            {"*winks*", "😉"},
+            {"*smile*", "😊"},
+            {"*smiles*", "😊"},
+            {"*laugh*", "😂"},
+            {"*laughs*", "😂"},
+            {"*giggle*", "🤭"},
+            {"*giggles*", "🤭"},
+            {"*blush*", "😳"},
+            {"*blushes*", "😳"},
+            {"*nod*", "😌"},
+            {"*nods*", "😌"},
+            {"*sigh*", "😔"},
+            {"*sighs*", "😔"},
+            {"*frown*", "☹️"},
+            {"*frowns*", "☹️"},
+            {"*grin*", "😁"},
+            {"*grins*", "😁"}
+        };
+
+        foreach (var kvp in replacements)
+        {
+            sb.Replace(kvp.Key, kvp.Value);
+        }
+
+        return sb.ToString(); 
     }
 }

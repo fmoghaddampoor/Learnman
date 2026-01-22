@@ -10,7 +10,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<Learnman.Services.IAITutorService, Learnman.Services.OpenRouterAITutorService>();
+builder.Services.AddScoped<Learnman.Services.IAITutorService, Learnman.Services.OllamaAITutorService>();
 builder.Services.AddScoped<Learnman.Services.ITextToSpeechService, Learnman.Services.MockTextToSpeechService>();
 builder.Services.AddDbContext<Learnman.Data.AppDbContext>(options =>
     options.UseSqlite("Data Source=learnman.db"));

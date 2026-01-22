@@ -34,51 +34,62 @@ public class OpenRouterAITutorService : IAITutorService
         // System Prompt
         var systemPrompt = $"{character.SeductivePersonaPrompt} Current Student Context: Native Language: {_authService.CurrentUser?.NativeLanguage}, Target Language: {character.Language}. Keep responses short, flirtatious, and educational. Correct mistakes gently but seductively.";
 
-        var requestBody = new
-        {
-            model = "google/gemini-pro-1.5", // Or "openai/gpt-4o-mini", "meta-llama/llama-3-8b-instruct"
-            messages = new[]
-            {
-                new { role = "system", content = systemPrompt },
-                new { role = "user", content = message }
-            }
+        var freeModels = new[] 
+        { 
+            "google/gemini-2.0-flash-exp:free", 
+            "google/gemini-exp-1206:free",
+            "meta-llama/llama-3-8b-instruct:free", 
+            "microsoft/phi-3-mini-128k-instruct:free"
         };
 
-        var json = JsonSerializer.Serialize(requestBody);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        foreach (var model in freeModels)
+        {
+            var requestBody = new
+            {
+                model = model,
+                messages = new[]
+                {
+                    new { role = "system", content = systemPrompt },
+                    new { role = "user", content = message }
+                }
+            };
+
+            var json = JsonSerializer.Serialize(requestBody);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            try 
+            {
+                var response = await _httpClient.PostAsync(url, content);
+                
+                // If success, return immediately
+                if (response.IsSuccessStatusCode)
+                {
+                     var jsonResponse = await response.Content.ReadAsStringAsync();
+                     using var doc = JsonDocument.Parse(jsonResponse);
+                     if (doc.RootElement.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
+                     {
+                        var contentElem = choices[0].GetProperty("message").GetProperty("content").GetString();
+                        return contentElem ?? "...";
+                     }
+                }
+                
+                // If 429 (Too Many Requests), loop to next model
+                if ((int)response.StatusCode == 429)
+                {
+                    continue; // Try next model
+                }
+                
+                // For other errors, maybe just return or continue? Let's just return the error if it's the last one.
+                // Or better, only error if ALL fail.
+            }
+            catch 
+            {
+                // Continue to next model on exception
+            }
+        }
         
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-        // OpenRouter optional headers
-        if (!_httpClient.DefaultRequestHeaders.Contains("HTTP-Referer"))
-        {
-            _httpClient.DefaultRequestHeaders.Add("HTTP-Referer", "http://localhost:5000");
-            _httpClient.DefaultRequestHeaders.Add("X-Title", "Learnman AI Tutor");
-        }
+        return "*pouts* All the free stargates are busy right now! (Rate Limited on all free models). Please try again in a moment.";
 
-        try 
-        {
-            var response = await _httpClient.PostAsync(url, content);
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorDetail = await response.Content.ReadAsStringAsync();
-                return $"*frowns* OpenRouter rejected us... ({response.StatusCode} - {errorDetail})";
-            }
 
-            var jsonResponse = await response.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(jsonResponse);
-            
-            // OpenAI Format: choices[0].message.content
-            if (doc.RootElement.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
-            {
-                var contentElem = choices[0].GetProperty("message").GetProperty("content").GetString();
-                return contentElem ?? "...";
-            }
-
-            return "*confused* OpenRouter sent silence.";
-        }
-        catch (Exception ex)
-        {
-            return $"*sighs* I cannot hear you... ({ex.Message})";
-        }
     }
 }
