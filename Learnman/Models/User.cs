@@ -25,4 +25,5 @@ public class User
     public string Location { get; set; } = "USA";
     
     public string? GeminiApiKey { get; set; } // User's API Key for BYOK
+    public int TotalPoints { get; set; } = 0;
 }

@@ -21,23 +21,36 @@ public class OpenRouterAITutorService : IAITutorService
         return new MockAITutorService().GetCharacters(); 
     }
 
-    public async Task<string> GetChatResponseAsync(string message, TutorCharacter character)
+    public async Task<ChatResponse> GetChatResponseAsync(IEnumerable<ChatMessage> history, TutorCharacter character)
     {
         var apiKey = ApiSecrets.OpenRouterKey;
         if (string.IsNullOrEmpty(apiKey) || apiKey.Contains("YOUR_OPENROUTER_KEY"))
         {
-            return "*whispers* You must set your OpenRouter API Key in ApiSecrets.cs, darling...";
+            return new ChatResponse { Message = "*whispers* You must set your OpenRouter API Key in ApiSecrets.cs, darling..." };
         }
 
         var url = "https://openrouter.ai/api/v1/chat/completions";
         
         // System Prompt
-        var systemPrompt = $"{character.SeductivePersonaPrompt} Current Student Context: Native Language: {_authService.CurrentUser?.NativeLanguage}, Target Language: {character.Language}. Keep responses short, flirtatious, and educational. Correct mistakes gently but seductively.";
+        var systemPrompt = $"{character.SeductivePersonaPrompt} Current Student Context: Native Language: {_authService.CurrentUser?.NativeLanguage}, Target Language: {character.Language}. " +
+                           "Keep responses short, flirtatious, and educational. Correct mistakes gently but seductively. " +
+                           $"Your 'message' and the 'text' in 'suggestions' MUST BE ENTIRELY IN {character.Language.ToUpper()}. " +
+                           "ALWAYS respond in strictly valid JSON format with exactly these keys: " +
+                           "1. 'message': Your reply as the tutor in the target language. " +
+                           "2. 'messageTranslation': The translation of your 'message' into the student's native language. " +
+                           "3. 'userMessageTranslation': The translation of the STUDENT'S LAST message into their native language. " +
+                           "4. 'isCorrect': (Boolean) Evaluate if the student's LAST message was grammatically and contextually correct for a student at their level. " +
+                           "5. 'correctionFeedback': (Optional string) If 'isCorrect' is false, provide a very short, seductive correction. " +
+                           "6. 'suggestions': A list of 3-4 objects, each with 'text' (a natural reply the STUDENT could say next, in the target language) and 'translation' (in the student's native language).";
+
+        var apiMessages = new List<object> { new { role = "system", content = systemPrompt } };
+        foreach (var msg in history.TakeLast(10)) // Last 10 messages for context
+        {
+            apiMessages.Add(new { role = msg.Role, content = msg.Content });
+        }
 
         var freeModels = new[] 
         { 
-            "x-ai/grok-2-1212",
-            "x-ai/grok-beta",
             "google/gemini-2.0-flash-exp:free", 
             "google/gemini-exp-1206:free",
             "meta-llama/llama-3-8b-instruct:free", 
@@ -49,11 +62,8 @@ public class OpenRouterAITutorService : IAITutorService
             var requestBody = new
             {
                 model = model,
-                messages = new[]
-                {
-                    new { role = "system", content = systemPrompt },
-                    new { role = "user", content = message }
-                }
+                messages = apiMessages,
+                response_format = new { type = "json_object" } 
             };
 
             var json = JsonSerializer.Serialize(requestBody);
@@ -63,7 +73,6 @@ public class OpenRouterAITutorService : IAITutorService
             {
                 var response = await _httpClient.PostAsync(url, content);
                 
-                // If success, return immediately
                 if (response.IsSuccessStatusCode)
                 {
                      var jsonResponse = await response.Content.ReadAsStringAsync();
@@ -71,18 +80,26 @@ public class OpenRouterAITutorService : IAITutorService
                      if (doc.RootElement.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
                      {
                         var contentElem = choices[0].GetProperty("message").GetProperty("content").GetString();
-                        return contentElem ?? "...";
+                        if (!string.IsNullOrEmpty(contentElem))
+                        {
+                            try 
+                            {
+                                var chatResp = JsonSerializer.Deserialize<ChatResponse>(contentElem, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                if (chatResp != null) return chatResp;
+                            }
+                            catch 
+                            {
+                                // Fallback if AI didn't return perfect JSON
+                                return new ChatResponse { Message = contentElem };
+                            }
+                        }
                      }
                 }
                 
-                // If 429 (Too Many Requests), loop to next model
                 if ((int)response.StatusCode == 429)
                 {
-                    continue; // Try next model
+                    continue; 
                 }
-                
-                // For other errors, maybe just return or continue? Let's just return the error if it's the last one.
-                // Or better, only error if ALL fail.
             }
             catch 
             {
@@ -90,8 +107,6 @@ public class OpenRouterAITutorService : IAITutorService
             }
         }
         
-        return "*pouts* All the free stargates are busy right now! (Rate Limited on all free models). Please try again in a moment.";
-
-
+        return new ChatResponse { Message = "*pouts* All the free stargates are busy right now! (Rate Limited on all free models). Please try again in a moment." };
     }
 }

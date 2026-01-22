@@ -23,32 +23,49 @@ public class GeminiAITutorService : IAITutorService
         return new MockAITutorService().GetCharacters(); 
     }
 
-    public async Task<string> GetChatResponseAsync(string message, TutorCharacter character)
+    public async Task<ChatResponse> GetChatResponseAsync(IEnumerable<ChatMessage> history, TutorCharacter character)
     {
         var apiKey = _authService.CurrentUser?.GeminiApiKey;
         if (string.IsNullOrEmpty(apiKey))
         {
-            return "*whispers* I need your API Key to speak, darling... (Please enter it in Settings)";
+            return new ChatResponse { Message = "*whispers* I need your API Key to speak, darling... (Please enter it in Settings)" };
         }
 
         // Construct system prompt
-        var systemPrompt = $"{character.SeductivePersonaPrompt} Current Student Context: Native Language: {_authService.CurrentUser?.NativeLanguage}, Target Language: {character.Language}. Keep responses short, flirtatious, and educational. Correct mistakes gently but seductively.";
+        var systemPrompt = $"{character.SeductivePersonaPrompt} Current Student Context: Native Language: {_authService.CurrentUser?.NativeLanguage}, Target Language: {character.Language}. " +
+                           "Keep responses short, flirtatious, and educational. Correct mistakes gently but seductively. " +
+                           $"Your 'message' and the 'text' in 'suggestions' MUST BE ENTIRELY IN {character.Language.ToUpper()}. " +
+                           "ALWAYS respond in strictly valid JSON format with exactly these keys: " +
+                           "1. 'message': Your reply as the tutor in the target language. " +
+                           "2. 'messageTranslation': The translation of your 'message' into the student's native language. " +
+                           "3. 'userMessageTranslation': The translation of the STUDENT'S LAST message into their native language. " +
+                           "4. 'isCorrect': (Boolean) Evaluate if the student's LAST message was grammatically and contextually correct for a student at their level. " +
+                           "5. 'correctionFeedback': (Optional string) If 'isCorrect' is false, provide a very short, seductive correction. " +
+                           "6. 'suggestions': A list of 3-4 objects, each with 'text' (a natural reply the STUDENT could say next, in the target language) and 'translation' (in the student's native language).";
 
         var modelId = "gemini-1.5-flash"; // Default
         var url = $"https://generativelanguage.googleapis.com/v1beta/models/{modelId}:generateContent?key={apiKey}";
 
-        // Helper to create content
-        StringContent CreateRequest(string m) 
+        // Helper to create content with history
+        StringContent CreateRequest(string model) 
         {
-             var requestBody = new
+            var contents = new List<object>();
+            
+            // Add messages from history, mapping roles
+            foreach (var msg in history.TakeLast(10))
             {
-                contents = new[]
+                contents.Add(new
                 {
-                    new
-                    {
-                        parts = new[] { new { text = systemPrompt + "\n\nUser: " + message } }
-                    }
-                }
+                    role = msg.Role == "user" ? "user" : "model",
+                    parts = new[] { new { text = msg.Content } }
+                });
+            }
+
+            var requestBody = new
+            {
+                system_instruction = new { parts = new[] { new { text = systemPrompt } } },
+                contents = contents,
+                generationConfig = new { response_mime_type = "application/json" }
             };
             return new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
         }
@@ -92,18 +109,12 @@ public class GeminiAITutorService : IAITutorService
 
                     if (fallbackModel != null)
                     {
-                        // Retry with fallback
-                        // fallbackModel already contains "models/", so just append :generateContent
-                        // wait, the name is "models/foo", but URL expects "models/foo:generateContent"
-                        // v1beta/models/gemini-1.5-flash:generateContent
-                        // if fallback is "models/gemini-1.0-pro", we want https://.../v1beta/models/gemini-1.0-pro:generateContent
-                        
                         var fallbackUrl = $"https://generativelanguage.googleapis.com/v1beta/{fallbackModel}:generateContent?key={apiKey}";
-                        response = await _httpClient.PostAsync(fallbackUrl, CreateRequest(message));
+                        response = await _httpClient.PostAsync(fallbackUrl, CreateRequest(fallbackModel));
                     }
                     else
                     {
-                         return $"*frowns* I looked at the stars (ListModels) but found no Gemini models I can use... ({listJson})";
+                         return new ChatResponse { Message = $"*frowns* I looked at the stars (ListModels) but found no Gemini models I can use... ({listJson})" };
                     }
                 }
             }
@@ -111,13 +122,12 @@ public class GeminiAITutorService : IAITutorService
             if (!response.IsSuccessStatusCode)
             {
                 var errorDetail = await response.Content.ReadAsStringAsync();
-                return $"*frowns* My connection to the stars is broken... (Status: {response.StatusCode} - {errorDetail})";
+                return new ChatResponse { Message = $"*frowns* My connection to the stars is broken... (Status: {response.StatusCode} - {errorDetail})" };
             }
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(jsonResponse);
             
-            // Handle potentially empty candidates (safety blocks)
             if (doc.RootElement.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
             {
                  var candidate = candidates[0];
@@ -125,18 +135,30 @@ public class GeminiAITutorService : IAITutorService
                      contentElem.TryGetProperty("parts", out var parts) && 
                      parts.GetArrayLength() > 0)
                  {
-                     return parts[0].GetProperty("text").GetString() ?? "...";
+                     var text = parts[0].GetProperty("text").GetString();
+                     if (!string.IsNullOrEmpty(text))
+                     {
+                        try 
+                        {
+                            var chatResp = JsonSerializer.Deserialize<ChatResponse>(text, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                            if (chatResp != null) return chatResp;
+                        }
+                        catch 
+                        {
+                            return new ChatResponse { Message = text };
+                        }
+                     }
                  }
                  else
                  {
-                     return "*blushes* I... I cannot say what I'm thinking (Safety Filter Triggered).";
+                     return new ChatResponse { Message = "*blushes* I... I cannot say what I'm thinking (Safety Filter Triggered)." };
                  }
             }
-            return "*confused* The stars are silent today.";
+            return new ChatResponse { Message = "*confused* The stars are silent today." };
         }
         catch (Exception ex)
         {
-            return $"*sighs* I cannot hear you... ({ex.Message})";
+            return new ChatResponse { Message = $"*sighs* I cannot hear you... ({ex.Message})" };
         }
     }
 }

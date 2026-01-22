@@ -80,5 +80,22 @@ public class AuthService
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<int> UpdatePointsAsync(int delta)
+    {
+        if (CurrentUser == null) return 0;
+        
+        var user = await _context.Users.FindAsync(CurrentUser.Id);
+        if (user != null)
+        {
+            user.TotalPoints += delta;
+            if (user.TotalPoints < 0) user.TotalPoints = 0;
+            
+            CurrentUser = user;
+            await _context.SaveChangesAsync();
+            return user.TotalPoints;
+        }
+        return 0;
+    }
 }
 

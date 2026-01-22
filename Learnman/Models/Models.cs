@@ -16,5 +16,22 @@ public class ChatMessage
 {
     public string Role { get; set; } = "user"; // "user" or "assistant"
     public string Content { get; set; } = "";
+    public string? Translation { get; set; }
     public DateTime Timestamp { get; set; } = DateTime.Now;
+}
+
+public class ChatResponse
+{
+    public string Message { get; set; } = "";
+    public string MessageTranslation { get; set; } = "";
+    public string UserMessageTranslation { get; set; } = "";
+    public List<ChatSuggestion> Suggestions { get; set; } = new();
+    public bool? IsCorrect { get; set; } // null if not an evaluation
+    public string? CorrectionFeedback { get; set; }
+}
+
+public class ChatSuggestion
+{
+    public string Text { get; set; } = "";
+    public string Translation { get; set; } = "";
 }

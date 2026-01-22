@@ -5,7 +5,7 @@ namespace Learnman.Services;
 public interface IAITutorService
 {
     List<TutorCharacter> GetCharacters();
-    Task<string> GetChatResponseAsync(string history, TutorCharacter character);
+    Task<ChatResponse> GetChatResponseAsync(IEnumerable<ChatMessage> history, TutorCharacter character);
 }
 
 public class MockAITutorService : IAITutorService
@@ -142,9 +142,20 @@ public class MockAITutorService : IAITutorService
         };
     }
 
-    public async Task<string> GetChatResponseAsync(string message, TutorCharacter character)
+    public async Task<ChatResponse> GetChatResponseAsync(IEnumerable<ChatMessage> history, TutorCharacter character)
     {
         await Task.Delay(1000); // Simulate network
-        return $"*{character.AccentDescription} voice* Oh darling... you said '{message}'? That is... stimulating. Let me show you how to say it properly..."; 
+        var lastUserMsg = history.LastOrDefault(m => m.Role == "user")?.Content ?? "...";
+        return new ChatResponse 
+        { 
+            Message = $"*{character.AccentDescription} voice* Oh darling... you said '{lastUserMsg}'? That is... stimulating. Let me show you how to say it properly...",
+            MessageTranslation = $"Oh caro... hai detto '{lastUserMsg}'? È... stimolante. Lascia che ti mostri come dirlo correttamente...",
+            Suggestions = new List<ChatSuggestion> 
+            { 
+                new ChatSuggestion { Text = "Tell me more!", Translation = "Dimmi di più!" },
+                new ChatSuggestion { Text = "How do I say 'I love you'?", Translation = "Come si dice 'Ti amo'?" },
+                new ChatSuggestion { Text = "Let's practice again.", Translation = "Facciamo di nuovo pratica." }
+            }
+        }; 
     }
 }
