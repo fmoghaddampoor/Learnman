@@ -204,11 +204,12 @@
     }
     
     .badge-filter {
-        background: var(--bg-secondary);
+        background: var(--accent-primary);
         border: 1px solid var(--accent-primary);
         padding: 5px 15px;
         border-radius: 20px;
         color: white;
+        font-weight: 600;
     }
 
     /* Chat */
@@ -533,38 +534,75 @@
         100% { transform: translateY(-150px) scale(0.8); opacity: 0; }
     }
 
-    /* ✨ Light Mode Overrides for Chat */
-    @@media (prefers-color-scheme: light) {
-        .msg-bubble {
-            background: rgba(0, 0, 0, 0.04);
-            color: #1e1b4b;
-        }
+    /* ✨ Light Mode Overrides for Chat (using data-theme attribute) */
+    :root[data-theme="light"] .msg-bubble {
+        background: rgba(0, 0, 0, 0.06);
+        color: #1e1b4b;
+    }
 
-        .user-msg .msg-bubble {
-            background: linear-gradient(135deg, #7c3aed, #db2777);
-            color: white;
-        }
+    :root[data-theme="light"] .user-msg .msg-bubble {
+        background: linear-gradient(135deg, #7c3aed, #db2777);
+        color: white;
+    }
 
-        [data-tooltip]:hover::after {
-            background: rgba(255, 255, 255, 0.98);
-            color: #1e1b4b;
-            border: 1px solid rgba(124, 58, 237, 0.3);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        }
+    :root[data-theme="light"] [data-tooltip]:hover::after {
+        background: rgba(255, 255, 255, 0.98);
+        color: #1e1b4b;
+        border: 1px solid rgba(124, 58, 237, 0.3);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
 
-        .btn-suggestion {
-            background: rgba(124, 58, 237, 0.08);
-            color: #1e1b4b;
-            border-color: rgba(124, 58, 237, 0.2);
-        }
+    :root[data-theme="light"] .btn-suggestion {
+        background: rgba(124, 58, 237, 0.12);
+        color: #1e1b4b;
+        border: 1px solid rgba(124, 58, 237, 0.3);
+    }
 
-        .btn-suggestion:hover {
-            background: rgba(124, 58, 237, 0.15);
-        }
+    :root[data-theme="light"] .btn-suggestion:hover {
+        background: rgba(124, 58, 237, 0.2);
+    }
 
-        .chat-input {
-            background: rgba(255, 255, 255, 0.9);
-        }
+    :root[data-theme="light"] .chat-input {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(124, 58, 237, 0.2);
+    }
+
+    :root[data-theme="light"] .chat-input input {
+        color: #1e1b4b;
+    }
+
+    :root[data-theme="light"] .chat-header {
+        background: rgba(255, 255, 255, 0.8);
+    }
+
+    :root[data-theme="light"] .btn-back {
+        color: #1e1b4b;
+    }
+
+    :root[data-theme="light"] .chat-header h3,
+    :root[data-theme="light"] .chat-header small {
+        color: #1e1b4b;
+    }
+
+    :root[data-theme="light"] .points-badge {
+        background: rgba(124, 58, 237, 0.1);
+        border-color: var(--accent-primary);
+    }
+
+    :root[data-theme="light"] .p-value {
+        color: #1e1b4b;
+    }
+
+    :root[data-theme="light"] .badge-filter {
+        color: #1e1b4b;
+    }
+
+    :root[data-theme="light"] .chat-messages::-webkit-scrollbar-thumb {
+        background-color: var(--accent-primary);
+    }
+
+    :root[data-theme="light"] .chat-messages::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
     }
 </style>
 
