@@ -1,0 +1,429 @@
+@page "/tutor"
+@using Learnman.Models
+@using Learnman.Services
+@inject IAITutorService AIService
+@inject ITextToSpeechService TTSService
+@inject IJSRuntime JS
+@inject Learnman.Services.AuthService AuthService
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>Private Lesson - LinguistAI</PageTitle>
+
+<div class="tutor-container">
+    @if (SelectedCharacter == null)
+    {
+        <div class="character-selection animate-fade-in">
+            <h1>Choose Your <span class="text-gradient">Teacher</span></h1>
+            <p>Who connects with your desires?</p>
+            
+            <div class="filter-status">
+                @if (FilteredByLanguage)
+                {
+                    <span class="badge-filter">Filtered by: @TargetLanguage</span>
+                }
+            </div>
+
+            <div class="char-grid">
+                @foreach (var chara in Characters)
+                {
+                    <div class="char-card" @onclick="() => SelectCharacter(chara)">
+                        <img src="@chara.ImageUrl" alt="@chara.Name" class="char-avatar" />
+                        <div class="char-info">
+                            <h3>@chara.Name</h3>
+                            <span class="badge">@chara.Language</span>
+                            <span class="badge-accent">@chara.AccentDescription</span>
+                            <p>@chara.Bio</p>
+                        </div>
+                    </div>
+                }
+                @if (Characters.Count == 0)
+                {
+                    <p>No teachers available for this language yet.</p>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="chat-interface animate-fade-in">
+            <div class="chat-header glass-panel">
+                <div class="header-info">
+                    <button class="btn-back" @onclick="() => SelectedCharacter = null">←</button>
+                    <img src="@SelectedCharacter.ImageUrl" alt="@SelectedCharacter.Name" class="avatar-small" />
+                    <div>
+                        <h3>@SelectedCharacter.Name</h3>
+                        <small>@SelectedCharacter.AccentDescription</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chat-scroll">
+                @foreach (var msg in Messages)
+                {
+                    <div class="message @(msg.Role == "user" ? "user-msg" : "bot-msg")">
+                        <div class="msg-bubble glass-panel">
+                            @msg.Content
+                        </div>
+                    </div>
+                }
+                @if (IsTyping)
+                {
+                    <div class="message bot-msg">
+                        <div class="msg-bubble glass-panel typing">
+                            <span>.</span><span>.</span><span>.</span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="chat-input glass-panel">
+                <input @bind="CurrentInput" @bind:event="oninput" @onkeydown="@Enter" placeholder="Whisper something..." />
+                <button class="btn-send" @onclick="SendMessage" disabled="@(string.IsNullOrWhiteSpace(CurrentInput))">Send</button>
+            </div>
+        </div>
+    }
+
+    
+    @if (ShowApiKeyModal) 
+    {
+        <div class="modal-backdrop">
+            <div class="modal-glass animate-fade-in">
+                <h2>Connect Your <span class="text-gradient">Gemini</span></h2>
+                <p>To chat with @(SelectedCharacter?.Name ?? "me"), I need your API Key.</p>
+                <input type="password" @bind="NewApiKey" placeholder="Paste Gemini API Key here..." class="api-input" />
+                <div class="modal-actions">
+                    <button class="btn-secondary" @onclick="() => ShowApiKeyModal = false">Cancel</button>
+                    <button class="btn-primary" @onclick="SaveApiKey">Connect</button>
+                </div>
+                <small style="opacity:0.6; display:block; margin-top:10px;">Keys are stored locally in your database.</small>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .tutor-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Selection */
+    .character-selection {
+        text-align: center;
+        padding-top: 50px;
+    }
+    
+    .char-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-top: 40px;
+    }
+    
+    .char-card {
+        background: var(--bg-glass);
+        border: 1px solid var(--border-glass);
+        border-radius: var(--radius-md);
+        padding: 25px;
+        cursor: pointer;
+        transition: var(--transition-fast);
+        text-align: left;
+        max-width: 380px; /* Prevent wide stretching */
+        margin: 0 auto;   /* Center in grid cell if wide */
+    }
+    
+    .char-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent-primary);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    
+    .char-avatar {
+        width: 100%;
+        height: 400px;
+        object-fit: cover;
+        object-position: center 20%; /* Focus on face (upper middle) */
+        border-radius: var(--radius-sm);
+        margin-bottom: 15px;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .avatar-small {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--accent-primary);
+    }
+
+    .badge {
+        background: rgba(139, 92, 246, 0.2);
+        color: var(--accent-primary);
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-right: 5px;
+    }
+    
+    .badge-accent {
+        background: rgba(236, 72, 153, 0.2);
+        color: var(--accent-secondary);
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .filter-status {
+        margin-top: 20px;
+    }
+    
+    .badge-filter {
+        background: var(--bg-secondary);
+        border: 1px solid var(--accent-primary);
+        padding: 5px 15px;
+        border-radius: 20px;
+        color: white;
+    }
+
+    /* Chat */
+    .chat-interface {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    
+    .chat-header {
+        padding: 15px 25px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .header-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .btn-back {
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .message {
+        display: flex;
+        width: 100%;
+    }
+    
+    .user-msg { justify-content: flex-end; }
+    .bot-msg { justify-content: flex-start; }
+    
+    .msg-bubble {
+        padding: 15px 20px;
+        max-width: 70%;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.05);
+    }
+    
+    .user-msg .msg-bubble {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        color: white;
+        border: none;
+    }
+    
+    .chat-input {
+        margin-top: 20px;
+        padding: 10px;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-send {
+        background: var(--accent-primary);
+        color: white;
+        border: none;
+        padding: 0 25px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-weight: 600;
+    }
+    
+    .typing span {
+        animation: blink 1.4s infinite both;
+        margin: 0 2px;
+    }
+    
+    .typing span:nth-child(2) { animation-delay: .2s; }
+    .typing span:nth-child(3) { animation-delay: .4s; }
+    
+    @@keyframes blink {
+        0% { opacity: .2; }
+        20% { opacity: 1; }
+        100% { opacity: .2; }
+    }
+    
+    /* Modal */
+    .modal-backdrop {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.7);
+        backdrop-filter: blur(5px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+    }
+    
+    .modal-glass {
+        background: #1a1a2e;
+        border: 1px solid var(--border-glass);
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+    
+    .api-input {
+        width: 100%;
+        padding: 12px;
+        margin: 20px 0;
+        border-radius: 8px;
+        border: 1px solid var(--border-glass);
+        background: rgba(255,255,255,0.05);
+        color: white;
+    }
+    
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+</style>
+
+@code {
+    private List<TutorCharacter> Characters = new();
+    private TutorCharacter? SelectedCharacter;
+    private List<ChatMessage> Messages = new();
+    private string CurrentInput = "";
+    private bool IsTyping = false;
+    
+    private bool FilteredByLanguage = false;
+    private string TargetLanguage = "";
+    
+    private bool ShowApiKeyModal = false;
+    private string NewApiKey = "";
+
+    protected override void OnInitialized()
+    {
+        var allCharacters = AIService.GetCharacters();
+        var userLang = AuthService.CurrentUser?.TargetLanguage;
+        
+        // check for key
+        if (string.IsNullOrEmpty(AuthService.CurrentUser?.GeminiApiKey))
+        {
+            ShowApiKeyModal = true;
+        }
+
+        if (!string.IsNullOrEmpty(userLang))
+        {
+             TargetLanguage = userLang;
+             // Ensure 'userLang' matches the case in models (Models use "Italian", "French", etc.)
+             Characters = allCharacters.Where(c => c.Language.Equals(userLang, StringComparison.OrdinalIgnoreCase)).ToList();
+             FilteredByLanguage = true;
+        }
+        else 
+        {
+             Characters = allCharacters;
+             FilteredByLanguage = false;
+        }
+    }
+
+    private void SelectCharacter(TutorCharacter character)
+    {
+         if (string.IsNullOrEmpty(AuthService.CurrentUser?.GeminiApiKey))
+        {
+            ShowApiKeyModal = true;
+            return;
+        }
+        
+        SelectedCharacter = character;
+        Messages.Clear();
+        // Initial greeting
+        Messages.Add(new ChatMessage { Role = "assistant", Content = $"*looks at you intriguingly* Hello, student. I am {character.Name}. Ready to learn {character.Language}?" });
+    }
+    
+    @inject NavigationManager Nav
+    
+    private async Task SaveApiKey()
+    {
+        if (!string.IsNullOrWhiteSpace(NewApiKey))
+        {
+            var u = AuthService.CurrentUser;
+            if (u == null)
+            {
+                // Session lost, redirect to login
+                Nav.NavigateTo("/"); 
+                return;
+            }
+
+            await AuthService.UpdateUserPreferencesAsync(u.NativeLanguage, u.Location, u.TargetLanguage, NewApiKey);
+            ShowApiKeyModal = false;
+            
+            // Auto-start chat with selected char if present, or just close
+            StateHasChanged();
+        }
+    }
+
+    private async Task Enter(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            await SendMessage();
+        }
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(CurrentInput) || SelectedCharacter == null) return;
+
+        var userMsg = CurrentInput;
+        CurrentInput = "";
+        
+        Messages.Add(new ChatMessage { Role = "user", Content = userMsg });
+        
+        IsTyping = true;
+        StateHasChanged();
+
+        var response = await AIService.GetChatResponseAsync(userMsg, SelectedCharacter);
+        
+        IsTyping = false;
+        Messages.Add(new ChatMessage { Role = "assistant", Content = response });
+        
+        // Trigger TTS (Fire and forget provided UI doesn't block)
+        await TTSService.SynthesizeAsync(response, SelectedCharacter.VoiceId);
+        
+        StateHasChanged();
+        // Auto scroll would go here via JS Interop
+    }
+}

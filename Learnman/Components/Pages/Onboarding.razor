@@ -1,0 +1,153 @@
+@page "/onboarding"
+@layout Learnman.Components.Layout.AuthLayout
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Setup - LinguistAI</PageTitle>
+
+<div class="onboarding-wizard animate-fade-in">
+    <div class="progress-bar">
+        <div class="progress-fill" style="width: @(Step * 33.3)%"></div>
+    </div>
+
+    @if (Step == 1)
+    {
+        <div class="step-content">
+            <h2>Your Native Language</h2>
+            <p>So we know how to talk to you.</p>
+            
+            <div class="option-grid">
+                @foreach (var lang in Languages)
+                {
+                    <button class="option-card @(NativeLanguage == lang ? "selected" : "")" @onclick="() => NativeLanguage = lang">
+                        @lang
+                    </button>
+                }
+            </div>
+        </div>
+    }
+    else if (Step == 2)
+    {
+        <div class="step-content">
+            <h2>Current Location</h2>
+            <p>To tailor the context of your lessons.</p>
+            
+             <div class="option-grid">
+                @foreach (var loc in Locations)
+                {
+                    <button class="option-card @(CurrentLocation == loc ? "selected" : "")" @onclick="() => CurrentLocation = loc">
+                        @loc
+                    </button>
+                }
+            </div>
+        </div>
+    }
+    else if (Step == 3)
+    {
+        <div class="step-content">
+            <h2>Target Language</h2>
+            <p>What do you desire to learn?</p>
+            
+             <div class="option-grid">
+                @foreach (var lang in Languages.Where(l => l != NativeLanguage))
+                {
+                    <button class="option-card @(TargetLanguage == lang ? "selected" : "")" @onclick="() => TargetLanguage = lang">
+                        @lang
+                    </button>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="wizard-actions">
+        @if (Step > 1)
+        {
+            <button class="btn-secondary" @onclick="() => Step--">Back</button>
+        }
+        else 
+        {
+            <div></div> <!-- Spacer -->
+        }
+
+        <button class="btn-primary" @onclick="NextStep">
+            @(Step == 3 ? "Meet Your Teacher" : "Continue")
+        </button>
+    </div>
+</div>
+
+<style>
+    .progress-bar {
+        height: 4px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 2px;
+        margin-bottom: 30px;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        transition: width 0.4s ease;
+    }
+
+    .option-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin: 30px 0;
+    }
+    
+    .option-card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--border-glass);
+        padding: 20px;
+        border-radius: var(--radius-sm);
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: var(--transition-fast);
+        font-weight: 500;
+    }
+    
+    .option-card:hover {
+        background: rgba(255,255,255,0.1);
+    }
+    
+    .option-card.selected {
+        background: rgba(139, 92, 246, 0.2);
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 15px var(--accent-glow);
+    }
+    
+    .wizard-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+</style>
+
+@inject Learnman.Services.AuthService AuthService
+
+@code {
+    private int Step = 1;
+    
+    private string NativeLanguage = "English";
+    private string CurrentLocation = "USA";
+    private string TargetLanguage = "Spanish";
+
+    private List<string> Languages = new() { "English", "Spanish", "French", "German", "Italian", "Japanese", "Russian" };
+    private List<string> Locations = new() { "USA", "UK", "Europe", "Asia", "South America" };
+
+    private async Task NextStep()
+    {
+        if (Step < 3)
+        {
+            Step++;
+        }
+        else
+        {
+            // Save preferences
+            await AuthService.UpdateUserPreferencesAsync(NativeLanguage, CurrentLocation, TargetLanguage);
+            Navigation.NavigateTo("/tutor");
+        }
+    }
+}

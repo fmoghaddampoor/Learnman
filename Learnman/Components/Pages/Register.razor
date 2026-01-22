@@ -1,0 +1,130 @@
+@page "/register"
+@layout Learnman.Components.Layout.AuthLayout
+@inject NavigationManager Navigation
+@inject Learnman.Services.AuthService AuthService
+@rendermode InteractiveServer
+
+<PageTitle>Sign Up - Learnman</PageTitle>
+
+<div class="login-form animate-fade-in">
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="alert-error">@ErrorMessage</div>
+    }
+
+    <div class="name-row">
+        <div class="form-group">
+            <label>First Name</label>
+            <input type="text" @bind="FirstName" placeholder="John" />
+        </div>
+        <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" @bind="LastName" placeholder="Doe" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Email</label>
+        <input type="email" @bind="Email" placeholder="you@example.com" />
+    </div>
+    
+    <div class="form-group">
+        <label>Password</label>
+        <div class="password-wrapper">
+            <input type="@(ShowPassword ? "text" : "password")" @bind="Password" placeholder="••••••••" />
+            <button class="toggle-password" @onclick="TogglePassword">
+                @(ShowPassword ? "Hide" : "Show")
+            </button>
+        </div>
+    </div>
+
+    <button class="btn-primary w-100" @onclick="HandleRegister">
+        Create Account
+    </button>
+    
+    <div class="mt-4">
+        <p class="text-sm">Already have an account? <a href="" class="text-gradient hover:underline">Login</a></p>
+    </div>
+</div>
+
+<style>
+    .name-row {
+        display: flex;
+        gap: 15px;
+    }
+    
+    .form-group {
+        text-align: left;
+        margin-bottom: 20px;
+        flex: 1;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+    
+    .password-wrapper {
+        position: relative;
+    }
+    
+    .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        color: var(--accent-primary);
+        cursor: pointer;
+        font-size: 0.8rem;
+    }
+    
+    .alert-error {
+        background: rgba(236, 72, 153, 0.2);
+        color: #ec4899;
+        padding: 10px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+    }
+    
+    .w-100 { width: 100%; }
+    .mt-4 { margin-top: 1.5rem; }
+    .text-sm { font-size: 0.875rem; }
+</style>
+
+@code {
+    private string FirstName = "";
+    private string LastName = "";
+    private string Email = "";
+    private string Password = "";
+    private bool ShowPassword = false;
+    private string ErrorMessage = "";
+
+    private void TogglePassword()
+    {
+        ShowPassword = !ShowPassword;
+    }
+
+    private async Task HandleRegister()
+    {
+        try 
+        {
+            if (string.IsNullOrWhiteSpace(FirstName) || string.IsNullOrWhiteSpace(LastName) || string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
+            {
+                ErrorMessage = "All fields are required.";
+                return;
+            }
+
+            await AuthService.RegisterAsync(FirstName, LastName, Email, Password);
+            Navigation.NavigateTo("/"); // Go to login after register
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+    }
+}
