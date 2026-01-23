@@ -8,3 +8,5 @@ obj/
 publish_*/
 *.user
 ApiSecrets.cs
+publish_v*
+.gemini/
