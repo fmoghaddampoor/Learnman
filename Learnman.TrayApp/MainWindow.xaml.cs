@@ -57,6 +57,10 @@ namespace Learnman.TrayApp
             
             // Context Menu
             var contextMenu = new System.Windows.Forms.ContextMenuStrip();
+            contextMenu.Renderer = new System.Windows.Forms.ToolStripProfessionalRenderer(new DarkColorTable());
+            contextMenu.BackColor = System.Drawing.Color.FromArgb(26, 26, 46); // Dark Blue #1A1A2E
+            contextMenu.ForeColor = System.Drawing.Color.White;
+            contextMenu.ShowImageMargin = false; // Clean look
             
             _startMenuItem = new System.Windows.Forms.ToolStripMenuItem("Start Server", null, (s, e) => {
                 if (!_isServerRunning) ToggleServerButton_Click(null!, null!);
@@ -69,16 +73,39 @@ namespace Learnman.TrayApp
 
             var runAppItem = new System.Windows.Forms.ToolStripMenuItem("Run App", null, (s, e) => RunAppButton_Click(null!, null!));
 
-            contextMenu.Items.Add("Open", null, (s, e) => ShowWindow());
-            contextMenu.Items.Add("-");
+            contextMenu.Items.Add(CreateMenuItem("Open", (s, e) => ShowWindow()));
+            contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
             contextMenu.Items.Add(_startMenuItem);
             contextMenu.Items.Add(_stopMenuItem);
-            contextMenu.Items.Add("-");
+            contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
             contextMenu.Items.Add(runAppItem);
-            contextMenu.Items.Add("-");
-            contextMenu.Items.Add("Exit", null, (s, e) => ExitApplication());
+            contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+            contextMenu.Items.Add(CreateMenuItem("Exit", (s, e) => ExitApplication()));
             
             _notifyIcon.ContextMenuStrip = contextMenu;
+        }
+
+        private System.Windows.Forms.ToolStripMenuItem CreateMenuItem(string text, EventHandler onClick)
+        {
+            return new System.Windows.Forms.ToolStripMenuItem(text, null, onClick);
+        }
+
+        // Custom Color Table for Dark Theme
+        public class DarkColorTable : System.Windows.Forms.ProfessionalColorTable
+        {
+            public override System.Drawing.Color MenuItemSelected => System.Drawing.Color.FromArgb(99, 102, 241); // Indigo
+            public override System.Drawing.Color MenuItemBorder => System.Drawing.Color.FromArgb(99, 102, 241);
+            public override System.Drawing.Color MenuBorder => System.Drawing.Color.FromArgb(60, 60, 60);
+            public override System.Drawing.Color ToolStripDropDownBackground => System.Drawing.Color.FromArgb(26, 26, 46);
+            public override System.Drawing.Color ImageMarginGradientBegin => System.Drawing.Color.FromArgb(26, 26, 46);
+            public override System.Drawing.Color ImageMarginGradientMiddle => System.Drawing.Color.FromArgb(26, 26, 46);
+            public override System.Drawing.Color ImageMarginGradientEnd => System.Drawing.Color.FromArgb(26, 26, 46);
+            public override System.Drawing.Color SeparatorDark => System.Drawing.Color.FromArgb(60, 60, 60);
+            public override System.Drawing.Color SeparatorLight => System.Drawing.Color.Transparent;
+            public override System.Drawing.Color MenuItemSelectedGradientBegin => System.Drawing.Color.FromArgb(99, 102, 241);
+            public override System.Drawing.Color MenuItemSelectedGradientEnd => System.Drawing.Color.FromArgb(99, 102, 241);
+            public override System.Drawing.Color MenuItemPressedGradientBegin => System.Drawing.Color.FromArgb(99, 102, 241);
+            public override System.Drawing.Color MenuItemPressedGradientEnd => System.Drawing.Color.FromArgb(99, 102, 241);
         }
 
         private void ShowWindow()
@@ -145,7 +172,8 @@ namespace Learnman.TrayApp
                         UseShellExecute = false,
                         CreateNoWindow = true,
                         RedirectStandardOutput = true,
-                        RedirectStandardError = true
+                        RedirectStandardError = true,
+                        WorkingDirectory = System.IO.Path.GetDirectoryName(exePath)
                     };
                 }
                 else if (System.IO.File.Exists(dllPath))

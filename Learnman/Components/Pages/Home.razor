@@ -22,7 +22,7 @@
         <label>Password</label>
         <div class="password-wrapper">
              <input type="@(ShowPassword ? "text" : "password")" @bind="Password" placeholder="••••••••" />
-             <button class="toggle-password" @onclick="TogglePassword">
+             <button type="button" class="toggle-password" @onclick="TogglePassword">
                  @(ShowPassword ? "Hide" : "Show")
              </button>
         </div>
@@ -85,9 +85,9 @@
     .text-sm { font-size: 0.875rem; }
     
     .btn-secondary {
-        background: rgba(255, 255, 255, 0.1);
+        background: transparent;
         color: var(--text-secondary);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid var(--border-glass);
         padding: 12px;
         border-radius: var(--radius-sm);
         cursor: pointer;
@@ -96,8 +96,9 @@
     }
     
     .btn-secondary:hover {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
+        background: var(--bg-glass);
+        color: var(--text-primary);
+        border-color: var(--accent-primary);
     }
 </style>
 

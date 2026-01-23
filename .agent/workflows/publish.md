@@ -17,6 +17,22 @@ foreach ($dir in $directories) {
 }
 $nextVersion = $maxVersion + 1
 $publishDir = "publish_v$nextVersion"
+
+# Close App
+Write-Host "Closing running applications..."
+Stop-Process -Name "Learnman.TrayApp" -Force -ErrorAction SilentlyContinue
+Stop-Process -Name "Learnman" -Force -ErrorAction SilentlyContinue
+Start-Sleep -Seconds 2
+
 Write-Host "Publishing to $publishDir..."
 dotnet publish -c Release -o $publishDir
+
+# Run App
+Write-Host "Starting published application..."
+$trayAppPath = Join-Path $publishDir "Learnman.TrayApp.exe"
+if (Test-Path $trayAppPath) {
+    Start-Process $trayAppPath
+} else {
+    Write-Warning "Could not find Learnman.TrayApp.exe in $publishDir"
+}
 ```
