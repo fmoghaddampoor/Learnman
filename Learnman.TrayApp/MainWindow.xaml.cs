@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Windows.Controls;
 
 namespace Learnman.TrayApp
 {
@@ -14,13 +15,49 @@ namespace Learnman.TrayApp
         private bool _isServerRunning = false;
         private Process? _serverProcess;
 
+        private ThemeManager _themeManager;
+
+        private bool _isUserSelection = true;
+
         public MainWindow()
         {
             InitializeComponent();
+            _themeManager = new ThemeManager(); // Initialize theme sync
+            _themeManager.ThemeChanged += OnThemeChanged;
+            
+            // Set initial state
+            OnThemeChanged(_themeManager.CurrentTheme);
+            
             InitializeTrayIcon();
             
             // Start centered but show up smoothly
             this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+        }
+
+        private void OnThemeChanged(string theme)
+        {
+            Dispatcher.Invoke(() => 
+            {
+                _isUserSelection = false;
+                foreach (ComboBoxItem item in ThemeComboBox.Items)
+                {
+                    if (item.Tag.ToString() == theme)
+                    {
+                        ThemeComboBox.SelectedItem = item;
+                        break;
+                    }
+                }
+                _isUserSelection = true;
+            });
+        }
+
+        private void ThemeComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (_isUserSelection && ThemeComboBox.SelectedItem is ComboBoxItem item)
+            {
+                string theme = item.Tag.ToString() ?? "light";
+                _themeManager.SetTheme(theme);
+            }
         }
 
         private System.Windows.Forms.ToolStripMenuItem _startMenuItem = null!;
@@ -129,9 +166,14 @@ namespace Learnman.TrayApp
                 this.DragMove();
         }
 
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
         {
             this.Hide(); // Minimize to tray
+        }
+
+        private void ExitApplication_Click(object sender, RoutedEventArgs e)
+        {
+            ExitApplication();
         }
 
         private void ToggleServerButton_Click(object sender, RoutedEventArgs e)
@@ -206,11 +248,11 @@ namespace Learnman.TrayApp
                             RedirectStandardError = true
                         };
                    }
-                   else
-                   {
-                       System.Windows.MessageBox.Show("Could not find Learnman application to start.");
-                       return;
-                   }
+                else
+                {
+                    CustomMessageBox.Show($"Could not find Learnman application to start.\nSearched:\n{exePath}\n{dllPath}", "Server Not Found");
+                    return;
+                }
                 }
 
                 _serverProcess = new Process { StartInfo = psi };
@@ -231,7 +273,7 @@ namespace Learnman.TrayApp
                 // Check if it exits immediately
                 if (_serverProcess.WaitForExit(2000)) // Wait 2 seconds to see if it dies
                 {
-                     System.Windows.MessageBox.Show($"Server exited prematureley. Code: {_serverProcess.ExitCode}");
+                     CustomMessageBox.Show($"Server exited prematureley. Code: {_serverProcess.ExitCode}", "Server Error");
                      _serverProcess = null;
                      _isServerRunning = false;
                 }
@@ -244,7 +286,7 @@ namespace Learnman.TrayApp
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Failed to start server: {ex.Message}");
+                CustomMessageBox.Show($"Failed to start server: {ex.Message}", "Error");
             }
         }
 
@@ -307,7 +349,7 @@ namespace Learnman.TrayApp
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Could not open browser: {ex.Message}");
+                CustomMessageBox.Show($"Could not open browser: {ex.Message}", "Browser Error");
             }
         }
 

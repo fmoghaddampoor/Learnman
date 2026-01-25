@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="LearnMan Server" Height="350" Width="300"
+        Title="LearnMan Server" Height="Auto" SizeToContent="Height" Width="320"
         WindowStyle="None" ResizeMode="CanMinimize"
         AllowsTransparency="True" Background="Transparent"
         MouseDown="Window_MouseDown"
@@ -14,13 +14,7 @@
         <WindowChrome CaptionHeight="0" CornerRadius="20" GlassFrameThickness="0" ResizeBorderThickness="0"/>
     </WindowChrome.WindowChrome>
 
-    <Border CornerRadius="20" BorderThickness="1" BorderBrush="#33FFFFFF">
-        <Border.Background>
-            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="#1A1A2E" Offset="0.0"/>
-                <GradientStop Color="#16213E" Offset="1.0"/>
-            </LinearGradientBrush>
-        </Border.Background>
+    <Border CornerRadius="20" BorderThickness="1" BorderBrush="#33FFFFFF" Background="{DynamicResource bg-primary}">
         <Border.Effect>
             <DropShadowEffect BlurRadius="20" ShadowDepth="10" Opacity="0.5" Color="Black"/>
         </Border.Effect>
@@ -32,25 +26,49 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- Header -->
-            <Grid Grid.Row="0" Margin="0,0,0,20">
+            <Grid Grid.Row="0" Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="LearnMan" FontSize="20" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
-                <Button Grid.Column="1" Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" 
-                        Background="Transparent" BorderThickness="0" Foreground="#80FFFFFF"
-                        Click="CloseButton_Click" Cursor="Hand" FontSize="12">
+                <TextBlock Text="LearnMan" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource text-primary}" VerticalAlignment="Center"/>
+                
+                <!-- Minimize Button -->
+                <Button Grid.Column="1" Content="&#xE921;" FontFamily="Segoe MDL2 Assets" 
+                        Background="Transparent" BorderThickness="0" Foreground="{DynamicResource text-secondary}"
+                        Click="MinimizeButton_Click" Cursor="Hand" FontSize="12" Margin="0,0,5,0" Width="30" Height="30">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="5">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#33FFFFFF"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource text-primary}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <!-- Close Button -->
+                <Button Grid.Column="2" Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" 
+                        Background="Transparent" BorderThickness="0" Foreground="{DynamicResource text-secondary}"
+                        Click="ExitApplication_Click" Cursor="Hand" FontSize="12" Width="30" Height="30">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#EF4444"/>
                                     <Setter Property="Foreground" Value="White"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
@@ -60,7 +78,7 @@
             </Grid>
 
             <!-- Status Indicator -->
-            <Border Grid.Row="1" Background="#1F2A44" CornerRadius="10" Padding="15" Margin="0,0,0,20">
+            <Border Grid.Row="1" Background="{DynamicResource bg-secondary}" CornerRadius="10" Padding="15" Margin="0,0,0,20">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <Ellipse Width="10" Height="10" x:Name="StatusDot" Fill="#FF4444" Margin="0,0,10,0"/>
                     <TextBlock x:Name="StatusText" Text="STOPPED" Foreground="#FF4444" FontWeight="SemiBold"/>
@@ -69,45 +87,175 @@
 
             <!-- Controls -->
             <StackPanel Grid.Row="2" VerticalAlignment="Center">
-                <TextBlock Text="PORT" Foreground="#80FFFFFF" FontSize="10" FontWeight="Bold" Margin="0,0,0,5"/>
-                <TextBox x:Name="PortTextBox" Text="5000" Background="#1F2A44" Foreground="White" 
-                         BorderThickness="0" Padding="10" FontSize="14" 
-                         VerticalContentAlignment="Center">
-                    <TextBox.Resources>
+                <TextBlock Text="PORT" Foreground="{DynamicResource text-secondary}" FontSize="10" FontWeight="Bold" Margin="0,0,0,5"/>
+                <Border CornerRadius="8" Background="{DynamicResource bg-secondary}" Padding="5">
+                    <TextBox x:Name="PortTextBox" Text="5000" Background="Transparent" Foreground="{DynamicResource text-primary}" 
+                             BorderThickness="0" FontSize="14" VerticalContentAlignment="Center" Padding="5"/>
+                </Border>
+            </StackPanel>
+
+            <!-- Theme Selector -->
+            <StackPanel Grid.Row="3" Margin="0,15,0,0">
+                <TextBlock Text="THEME" Foreground="{DynamicResource text-secondary}" FontSize="10" FontWeight="Bold" Margin="0,0,0,5"/>
+                <ComboBox x:Name="ThemeComboBox" Background="{DynamicResource bg-secondary}" Foreground="{DynamicResource text-primary}"
+                          BorderThickness="0" Padding="15,0" FontSize="14" Height="45" VerticalContentAlignment="Center"
+                          SelectionChanged="ThemeComboBox_SelectionChanged">
+                    <ComboBox.Resources>
                         <Style TargetType="{x:Type Border}">
-                            <Setter Property="CornerRadius" Value="5"/>
+                            <Setter Property="CornerRadius" Value="8"/>
                         </Style>
-                    </TextBox.Resources>
-                </TextBox>
+                        
+                        <!-- Toggle Button Template -->
+                        <ControlTemplate x:Key="ComboBoxToggleButton" TargetType="{x:Type ToggleButton}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition />
+                                    <ColumnDefinition Width="40" />
+                                </Grid.ColumnDefinitions>
+                                <Border x:Name="Border" Grid.ColumnSpan="2" CornerRadius="8" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" />
+                                <TextBlock Text="&#xE70D;" Grid.Column="1" FontFamily="Segoe MDL2 Assets" FontSize="12" 
+                                           Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                        </ControlTemplate>
+
+                        <!-- Toggle Button Style -->
+                        <Style TargetType="{x:Type ToggleButton}">
+                            <Setter Property="OverridesDefaultStyle" Value="true"/>
+                            <Setter Property="IsTabStop" Value="false"/>
+                            <Setter Property="Focusable" Value="false"/>
+                            <Setter Property="ClickMode" Value="Press"/>
+                            <Setter Property="Template" Value="{StaticResource ComboBoxToggleButton}"/>
+                        </Style>
+
+                        <!-- ComboBox Template -->
+                        <Style TargetType="{x:Type ComboBox}">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type ComboBox}">
+                                        <Grid>
+                                            <ToggleButton Name="ToggleButton" Template="{StaticResource ComboBoxToggleButton}" Grid.Column="2" Focusable="false" IsChecked="{Binding Path=IsDropDownOpen,Mode=TwoWay,RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press"
+                                                          Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Foreground="{TemplateBinding Foreground}"/>
+                                            <ContentPresenter Name="ContentSite" IsHitTestVisible="False"  Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" Margin="15,0,23,0" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                                            <Popup Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                                <Grid Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                                    <Border x:Name="DropDownBorder" Background="{DynamicResource bg-secondary}" BorderThickness="1" BorderBrush="#33FFFFFF" CornerRadius="8" Margin="0,5,0,0">
+                                                        <Border.Effect>
+                                                            <DropShadowEffect BlurRadius="10" ShadowDepth="4" Opacity="0.3" Direction="270"/>
+                                                        </Border.Effect>
+                                                    </Border>
+                                                    <ScrollViewer Margin="4,11,4,6" SnapsToDevicePixels="True">
+                                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                                    </ScrollViewer>
+                                                </Grid>
+                                            </Popup>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                        <!-- Style Dropdown Items -->
+                        <Style TargetType="ComboBoxItem">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="{DynamicResource text-primary}"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Padding" Value="10"/>
+                            <Setter Property="Margin" Value="0,2"/>
+                            <Setter Property="FontSize" Value="14"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ComboBoxItem">
+                                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true" CornerRadius="6">
+                                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="true">
+                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource accent-primary}"/>
+                                                <Setter TargetName="Bd" Property="TextElement.Foreground" Value="White"/>
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="true">
+                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource accent-primary}"/>
+                                                <Setter TargetName="Bd" Property="TextElement.Foreground" Value="White"/>
+                                                <Setter TargetName="Bd" Property="TextElement.FontWeight" Value="Bold"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ComboBox.Resources>
+                    <ComboBoxItem Content="Light" Tag="light"/>
+                    <ComboBoxItem Content="Dark" Tag="dark"/>
+                    <ComboBoxItem Content="Sunset" Tag="sunset"/>
+                    <ComboBoxItem Content="Ocean" Tag="ocean"/>
+                    <ComboBoxItem Content="Forest" Tag="forest"/>
+                </ComboBox>
             </StackPanel>
 
             <!-- Actions -->
-            <StackPanel Grid.Row="3" Margin="0,20,0,0">
-                <Button x:Name="ToggleServerButton" Content="START SERVER" Height="40" 
-                        Background="#0F3460" Foreground="White" BorderThickness="0"
-                        FontSize="12" FontWeight="Bold" Cursor="Hand"
+            <StackPanel Grid.Row="4" Margin="0,25,0,0">
+                <Button x:Name="ToggleServerButton" Content="START SERVER" Height="45" 
+                        Background="{DynamicResource accent-primary}" Foreground="White" BorderThickness="0"
+                        FontSize="14" FontWeight="Bold" Cursor="Hand"
                         Click="ToggleServerButton_Click">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="8"/>
                         </Style>
                     </Button.Resources>
+                    <Button.Template>
+                         <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Opacity" Value="0.9"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="RenderTransform">
+                                        <Setter.Value>
+                                            <ScaleTransform ScaleX="0.98" ScaleY="0.98" CenterX="100" CenterY="22"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
                 </Button>
                 
-                <Button Content="RUN APP" Height="40" Margin="0,10,0,0"
+                <Button Content="RUN APP" Height="45" Margin="0,10,0,0"
                         Background="#E94560" Foreground="White" BorderThickness="0"
-                        FontSize="12" FontWeight="Bold" Cursor="Hand"
+                        FontSize="14" FontWeight="Bold" Cursor="Hand"
                         Click="RunAppButton_Click">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="8"/>
                         </Style>
                     </Button.Resources>
+                    <Button.Template>
+                         <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Opacity" Value="0.9"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="RenderTransform">
+                                        <Setter.Value>
+                                            <ScaleTransform ScaleX="0.98" ScaleY="0.98" CenterX="100" CenterY="22"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
                 </Button>
             </StackPanel>
 
             <!-- Footer -->
-            <TextBlock Grid.Row="4" Text="Running in background" Foreground="#40FFFFFF" 
+            <TextBlock Grid.Row="5" Text="Running in background" Foreground="{DynamicResource text-secondary}" 
                        FontSize="10" HorizontalAlignment="Center" Margin="0,15,0,0"/>
 
         </Grid>

@@ -12,19 +12,53 @@ window.scrollToBottom = (elementId) => {
 
 const THEMES = ['light', 'dark', 'sunset', 'ocean', 'forest'];
 const THEME_KEY = 'learnman-theme';
+let _currentTheme = 'light';
 
 // Initialize theme on page load
 (function initTheme() {
     const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+    _currentTheme = savedTheme;
     document.documentElement.setAttribute('data-theme', savedTheme);
+
+    // Ensure UI is updated (checkmark)
+    // Defer slightly to ensure DOM is ready if script runs in head
+    setTimeout(() => updateThemePickerUI(savedTheme), 100);
+
+    // Start Polling for external changes (Tray App)
+    setInterval(pollTheme, 2000);
 })();
+
+async function pollTheme() {
+    try {
+        const response = await fetch('/api/theme');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.theme && data.theme !== _currentTheme) {
+                console.log('Syncing theme from external:', data.theme);
+                // Update local without triggering sending back to server (prevent loop)
+                _currentTheme = data.theme;
+                document.documentElement.setAttribute('data-theme', data.theme);
+                localStorage.setItem(THEME_KEY, data.theme);
+                updateThemePickerUI(data.theme);
+            }
+        }
+    } catch (e) { /* Ignore poll errors */ }
+}
 
 // Set theme and save to localStorage
 window.setTheme = function (theme) {
     if (THEMES.includes(theme)) {
+        _currentTheme = theme;
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem(THEME_KEY, theme);
         updateThemePickerUI(theme);
+
+        // Notify server
+        fetch('/api/theme', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ theme: theme })
+        }).catch(err => console.error('Failed to sync theme:', err));
     }
 }
 

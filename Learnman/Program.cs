@@ -10,6 +10,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
 builder.Services.AddHttpClient();
+builder.Services.AddControllers();
 builder.Services.AddScoped<Learnman.Services.IAITutorService, Learnman.Services.OllamaAITutorService>();
 builder.Services.AddScoped<Learnman.Services.ITextToSpeechService, Learnman.Services.MockTextToSpeechService>();
 builder.Services.AddDbContext<Learnman.Data.AppDbContext>(options =>
@@ -38,6 +39,7 @@ app.UseAntiforgery();
 
 app.UseStaticFiles();
 app.MapStaticAssets();
+app.MapControllers();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
