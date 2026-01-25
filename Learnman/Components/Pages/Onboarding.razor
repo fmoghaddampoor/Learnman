@@ -98,7 +98,7 @@
     }
     
     .option-card {
-        background: rgba(255,255,255,0.05);
+        background: var(--bg-glass);
         border: 1px solid var(--border-glass);
         padding: 20px;
         border-radius: var(--radius-sm);
@@ -106,16 +106,20 @@
         cursor: pointer;
         transition: var(--transition-fast);
         font-weight: 500;
+        backdrop-filter: blur(10px);
     }
     
     .option-card:hover {
-        background: rgba(255,255,255,0.1);
+        background: var(--bg-primary);
+        border-color: var(--accent-primary);
+        transform: translateY(-2px);
     }
     
     .option-card.selected {
-        background: rgba(139, 92, 246, 0.2);
+        background: var(--bg-gradient-1); /* Dynamic theme tint */
         border-color: var(--accent-primary);
         box-shadow: 0 0 15px var(--accent-glow);
+        color: var(--text-primary);
     }
     
     .wizard-actions {

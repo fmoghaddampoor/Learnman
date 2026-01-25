@@ -16,9 +16,16 @@ namespace Learnman.TrayApp
 
         public ThemeManager()
         {
-            // Assuming Learnman.exe is in the same folder or close by
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            _themeFile = Path.Combine(baseDir, "theme.lock");
+            // Use AppData for shared state between Web App and Tray App
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string learnmanDir = Path.Combine(appData, "Learnman");
+            
+            if (!Directory.Exists(learnmanDir))
+            {
+                Directory.CreateDirectory(learnmanDir);
+            }
+
+            _themeFile = Path.Combine(learnmanDir, "theme.lock");
             
             InitializeWatcher();
             LoadTheme(); // Initial load

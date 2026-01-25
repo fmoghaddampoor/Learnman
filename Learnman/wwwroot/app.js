@@ -24,8 +24,11 @@ let _currentTheme = 'light';
     // Defer slightly to ensure DOM is ready if script runs in head
     setTimeout(() => updateThemePickerUI(savedTheme), 100);
 
+    // Immediate poll to sync with Tray App on startup
+    pollTheme();
+
     // Start Polling for external changes (Tray App)
-    setInterval(pollTheme, 2000);
+    setInterval(pollTheme, 1000);
 })();
 
 async function pollTheme() {

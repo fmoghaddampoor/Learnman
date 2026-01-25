@@ -16,6 +16,7 @@ builder.Services.AddScoped<Learnman.Services.ITextToSpeechService, Learnman.Serv
 builder.Services.AddDbContext<Learnman.Data.AppDbContext>(options =>
     options.UseSqlite("Data Source=learnman.db"));
 builder.Services.AddScoped<Learnman.Services.AuthService>();
+builder.Services.AddScoped<Learnman.Services.ServerThemeService>();
 
 
 
