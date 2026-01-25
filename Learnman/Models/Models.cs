@@ -10,6 +10,14 @@ public class TutorCharacter
     public string Language { get; set; } = "English"; // Language the tutor teaches
     public string AccentDescription { get; set; } = "";
     public string SeductivePersonaPrompt { get; set; } = ""; // Internal prompt for the AI
+    public List<GreetingVariation> GreetingVariations { get; set; } = new(); // 7+ unique greetings
+}
+
+public class GreetingVariation
+{
+    public string Greeting { get; set; } = ""; // The greeting text (with {Name} placeholder)
+    public string Translation { get; set; } = ""; // English translation
+    public List<ChatSuggestion> Suggestions { get; set; } = new(); // Response suggestions
 }
 
 public class ChatMessage

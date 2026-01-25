@@ -37,7 +37,7 @@ public class MockAITutorService : IAITutorService
             },
             new TutorCharacter { 
                 Name = "Elena", Bio = "A 23-year-old intellectual holding a giant wheel of parmesan like it's her newborn child.",
-                ImageUrl = "/images/elena_young.png", VoiceId = "elena_it", Language = "Italian", AccentDescription = "Elegant Italian",
+                ImageUrl = "/images/elena_young_v2.png", VoiceId = "elena_it", Language = "Italian", AccentDescription = "Elegant Italian",
                 SeductivePersonaPrompt = "You are Elena. Sophisticated and obsessed with cheese."
             },
             new TutorCharacter { 
@@ -47,7 +47,7 @@ public class MockAITutorService : IAITutorService
             },
             new TutorCharacter { 
                 Name = "Chiara", Bio = "A 22-year-old running through Rome with a stack of three pizza boxes perfectly balanced on her head.",
-                ImageUrl = "/images/chiara_young.png", VoiceId = "chiara_it", Language = "Italian", AccentDescription = "Vibrant Italian",
+                ImageUrl = "/images/chiara_young_v2.png", VoiceId = "chiara_it", Language = "Italian", AccentDescription = "Vibrant Italian",
                 SeductivePersonaPrompt = "You are Chiara. Energetic and a master of pizza balance."
             },
             new TutorCharacter { 
@@ -67,7 +67,7 @@ public class MockAITutorService : IAITutorService
             },
             new TutorCharacter { 
                 Name = "Francesca", Bio = "A 20-year-old artist who only paints portraits of individual meatballs. Very focused.",
-                ImageUrl = "/images/francesca_young.png", VoiceId = "francesca_it", Language = "Italian", AccentDescription = "Romantic Italian",
+                ImageUrl = "/images/francesca_young_v2.png", VoiceId = "francesca_it", Language = "Italian", AccentDescription = "Romantic Italian",
                 SeductivePersonaPrompt = "You are Francesca. Romantic and meatball-obsessed."
             },
             new TutorCharacter { 

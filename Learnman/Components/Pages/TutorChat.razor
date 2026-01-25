@@ -239,6 +239,19 @@
         color: white;
         font-size: 1.5rem;
         cursor: pointer;
+        transition: var(--transition-fast);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+
+    .btn-back:hover {
+        background: rgba(255,255,255,0.1);
+        transform: translateX(-3px);
+        color: var(--accent-primary);
     }
 
     .chat-messages {
@@ -319,13 +332,7 @@
         transform: translateX(-50%) !important;
     }
 
-    /* FIRST message: Tooltip BELOW to avoid being cut off at top */
-    .first-msg .msg-bubble[data-tooltip]:hover::after {
-        bottom: auto !important;
-        top: 100% !important;
-        margin-bottom: 0 !important;
-        margin-top: 15px !important;
-    }
+    /* (Removed first-msg tooltip below override - it overlaps with suggestion buttons) */
 
     .user-msg .msg-bubble[data-tooltip]:hover::after {
         left: auto !important;
@@ -680,36 +687,25 @@
         Messages.Clear();
         CurrentSuggestions.Clear();
         
-        // Initial greeting - Tailored to language (Defaulting to Italian/English mix if not specialized)
-        string greeting = "";
-        string translation = "";
-        var suggestions = new List<ChatSuggestion>();
-
-        if (character.Language.Equals("Italian", StringComparison.OrdinalIgnoreCase))
-        {
-            greeting = $"*ti guarda con curiosità* Ciao, studente. Sono {character.Name}. Sei pronto ad imparare l'italiano?";
-            translation = "Looks at you intriguingly. Hello, student. I am " + character.Name + ". Are you ready to learn Italian?";
-            suggestions = new List<ChatSuggestion> 
-            { 
-                new ChatSuggestion { Text = "Sono pronto!", Translation = "I am ready!" },
-                new ChatSuggestion { Text = "Aiutami con il mio italiano.", Translation = "Help me with my Italian." },
-                new ChatSuggestion { Text = "Chi sei esattamente?", Translation = "Who are you exactly?" }
-            };
-        }
-        else 
-        {
-            greeting = $"*looks at you intriguingly* Hello, student. I am {character.Name}. Ready to learn {character.Language}?";
-            translation = greeting; // English default
-            suggestions = new List<ChatSuggestion> 
-            { 
-                new ChatSuggestion { Text = "I am ready!", Translation = "I am ready!" },
-                new ChatSuggestion { Text = "Help me with my language.", Translation = "Help me with my language." },
-                new ChatSuggestion { Text = "Who are you exactly?", Translation = "Who are you exactly?" }
-            };
-        }
+        // Get greeting variations by language
+        var greetings = character.Language.Equals("Italian", StringComparison.OrdinalIgnoreCase)
+            ? GreetingTemplates.GetItalianGreetings()
+            : GreetingTemplates.GetDefaultGreetings();
+        
+        // Randomly select one greeting
+        var random = new Random();
+        var selectedGreeting = greetings[random.Next(greetings.Count)];
+        
+        // Replace placeholders with actual values
+        var greeting = selectedGreeting.Greeting
+            .Replace("{Name}", character.Name)
+            .Replace("{Language}", character.Language);
+        var translation = selectedGreeting.Translation
+            .Replace("{Name}", character.Name)
+            .Replace("{Language}", character.Language);
 
         Messages.Add(new ChatMessage { Role = "assistant", Content = greeting, Translation = translation });
-        CurrentSuggestions = suggestions;
+        CurrentSuggestions = selectedGreeting.Suggestions;
     }
     
     // (API Key logic removed - using hardcoded ApiSecrets.cs)
