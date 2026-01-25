@@ -87,6 +87,8 @@ namespace Learnman.TrayApp
                 dict["text-secondary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#334155"));
                 dict["accent-primary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#4F46E5")); // Indigo
                 dict["accent-secondary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#DB2777")); // Pink
+                dict["accent-danger"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#EF4444")); // Red-500 (Standard)
+                dict["accent-success"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#22C55E")); // Green-500
             }
             else if (theme == "sunset")
             {
@@ -96,7 +98,9 @@ namespace Learnman.TrayApp
                 dict["text-primary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FEF3C7"));
                 dict["text-secondary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#D6B89F"));
                 dict["accent-primary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FB923C")); // Orange
-                dict["accent-secondary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#F43F5E")); // Rose
+                dict["accent-secondary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#EF4444")); // Red
+                dict["accent-danger"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#BE123C")); // Rose-700 (Warm Burgundy)
+                dict["accent-success"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#34D399")); // Emerald-400
             }
             else if (theme == "ocean")
             {
@@ -107,6 +111,8 @@ namespace Learnman.TrayApp
                 dict["text-secondary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#7DD3FC"));
                 dict["accent-primary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#0EA5E9")); // Sky
                 dict["accent-secondary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#14B8A6")); // Teal
+                dict["accent-danger"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#F43F5E")); // Rose-500 (Cool Red)
+                dict["accent-success"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2DD4BF")); // Teal-400
             }
             else if (theme == "forest")
             {
@@ -117,6 +123,8 @@ namespace Learnman.TrayApp
                 dict["text-secondary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#86EFAC"));
                 dict["accent-primary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#22C55E")); // Green
                 dict["accent-secondary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#84CC16")); // Lime
+                dict["accent-danger"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#B91C1C")); // Red-700 (Deep Red)
+                dict["accent-success"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#84CC16")); // Lime-500
             }
             else
             {
@@ -126,7 +134,9 @@ namespace Learnman.TrayApp
                 dict["text-primary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FFFFFF"));
                 dict["text-secondary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#94A3B8"));
                 dict["accent-primary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#8B5CF6")); // Violet
-                dict["accent-secondary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#EC4899")); // Pink
+                dict["accent-secondary"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#06B6D4")); // Cyan
+                dict["accent-danger"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#CF6679")); // Material Dark Error (Desaturated Red)
+                dict["accent-success"] = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#4ADE80")); // Green-400
             }
         }
 

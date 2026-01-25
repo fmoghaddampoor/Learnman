@@ -48,6 +48,9 @@ namespace Learnman.TrayApp
                     }
                 }
                 _isUserSelection = true;
+                
+                // Update Tray Menu Colors
+                UpdateTrayTheme(theme);
             });
         }
 
@@ -62,6 +65,8 @@ namespace Learnman.TrayApp
 
         private System.Windows.Forms.ToolStripMenuItem _startMenuItem = null!;
         private System.Windows.Forms.ToolStripMenuItem _stopMenuItem = null!;
+
+        private System.Windows.Forms.ContextMenuStrip _contextMenu = null!;
 
         private void InitializeTrayIcon()
         {
@@ -93,11 +98,8 @@ namespace Learnman.TrayApp
             _notifyIcon.DoubleClick += (s, args) => ShowWindow();
             
             // Context Menu
-            var contextMenu = new System.Windows.Forms.ContextMenuStrip();
-            contextMenu.Renderer = new System.Windows.Forms.ToolStripProfessionalRenderer(new DarkColorTable());
-            contextMenu.BackColor = System.Drawing.Color.FromArgb(26, 26, 46); // Dark Blue #1A1A2E
-            contextMenu.ForeColor = System.Drawing.Color.White;
-            contextMenu.ShowImageMargin = false; // Clean look
+            _contextMenu = new System.Windows.Forms.ContextMenuStrip();
+            _contextMenu.ShowImageMargin = false; // Clean look
             
             _startMenuItem = new System.Windows.Forms.ToolStripMenuItem("Start Server", null, (s, e) => {
                 if (!_isServerRunning) ToggleServerButton_Click(null!, null!);
@@ -110,16 +112,56 @@ namespace Learnman.TrayApp
 
             var runAppItem = new System.Windows.Forms.ToolStripMenuItem("Run App", null, (s, e) => RunAppButton_Click(null!, null!));
 
-            contextMenu.Items.Add(CreateMenuItem("Open", (s, e) => ShowWindow()));
-            contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-            contextMenu.Items.Add(_startMenuItem);
-            contextMenu.Items.Add(_stopMenuItem);
-            contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-            contextMenu.Items.Add(runAppItem);
-            contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-            contextMenu.Items.Add(CreateMenuItem("Exit", (s, e) => ExitApplication()));
+            _contextMenu.Items.Add(CreateMenuItem("Open", (s, e) => ShowWindow()));
+            _contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+            _contextMenu.Items.Add(_startMenuItem);
+            _contextMenu.Items.Add(_stopMenuItem);
+            _contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+            _contextMenu.Items.Add(runAppItem);
+            _contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+            _contextMenu.Items.Add(CreateMenuItem("Exit", (s, e) => ExitApplication()));
             
-            _notifyIcon.ContextMenuStrip = contextMenu;
+            _notifyIcon.ContextMenuStrip = _contextMenu;
+        }
+
+        private void UpdateTrayTheme(string theme)
+        {
+            if (_contextMenu == null) return;
+
+            System.Drawing.Color bgColor, textColor, accentColor;
+
+            switch (theme.ToLower())
+            {
+                case "light":
+                    bgColor = System.Drawing.Color.FromArgb(248, 250, 252); // #F8FAFC
+                    textColor = System.Drawing.Color.FromArgb(15, 23, 42);   // #0F172A
+                    accentColor = System.Drawing.Color.FromArgb(79, 70, 229); // #4F46E5 (Indigo)
+                    break;
+                case "sunset":
+                    bgColor = System.Drawing.Color.FromArgb(26, 20, 18);     // #1A1412
+                    textColor = System.Drawing.Color.FromArgb(254, 243, 199); // #FEF3C7
+                    accentColor = System.Drawing.Color.FromArgb(251, 146, 60); // #FB923C (Orange)
+                    break;
+                case "ocean":
+                    bgColor = System.Drawing.Color.FromArgb(12, 25, 41);      // #0C1929
+                    textColor = System.Drawing.Color.FromArgb(224, 242, 254); // #E0F2FE
+                    accentColor = System.Drawing.Color.FromArgb(14, 165, 233); // #0EA5E9 (Sky)
+                    break;
+                case "forest":
+                    bgColor = System.Drawing.Color.FromArgb(15, 26, 20);      // #0F1A14
+                    textColor = System.Drawing.Color.FromArgb(220, 252, 231); // #DCFCE7
+                    accentColor = System.Drawing.Color.FromArgb(34, 197, 94);   // #22C55E (Green)
+                    break;
+                default: // Dark
+                    bgColor = System.Drawing.Color.FromArgb(26, 26, 46);      // #1A1A2E (Matches existing dark)
+                    textColor = System.Drawing.Color.White;
+                    accentColor = System.Drawing.Color.FromArgb(139, 92, 246);  // #8B5CF6 (Violet)
+                    break;
+            }
+
+            _contextMenu.BackColor = bgColor;
+            _contextMenu.ForeColor = textColor;
+            _contextMenu.Renderer = new System.Windows.Forms.ToolStripProfessionalRenderer(new ThemeColorTable(bgColor, textColor, accentColor));
         }
 
         private System.Windows.Forms.ToolStripMenuItem CreateMenuItem(string text, EventHandler onClick)
@@ -127,22 +169,33 @@ namespace Learnman.TrayApp
             return new System.Windows.Forms.ToolStripMenuItem(text, null, onClick);
         }
 
-        // Custom Color Table for Dark Theme
-        public class DarkColorTable : System.Windows.Forms.ProfessionalColorTable
+        // Custom Color Table for Dynamic Theme
+        public class ThemeColorTable : System.Windows.Forms.ProfessionalColorTable
         {
-            public override System.Drawing.Color MenuItemSelected => System.Drawing.Color.FromArgb(99, 102, 241); // Indigo
-            public override System.Drawing.Color MenuItemBorder => System.Drawing.Color.FromArgb(99, 102, 241);
-            public override System.Drawing.Color MenuBorder => System.Drawing.Color.FromArgb(60, 60, 60);
-            public override System.Drawing.Color ToolStripDropDownBackground => System.Drawing.Color.FromArgb(26, 26, 46);
-            public override System.Drawing.Color ImageMarginGradientBegin => System.Drawing.Color.FromArgb(26, 26, 46);
-            public override System.Drawing.Color ImageMarginGradientMiddle => System.Drawing.Color.FromArgb(26, 26, 46);
-            public override System.Drawing.Color ImageMarginGradientEnd => System.Drawing.Color.FromArgb(26, 26, 46);
-            public override System.Drawing.Color SeparatorDark => System.Drawing.Color.FromArgb(60, 60, 60);
+            private readonly System.Drawing.Color _bgColor;
+            private readonly System.Drawing.Color _textColor;
+            private readonly System.Drawing.Color _accentColor;
+
+            public ThemeColorTable(System.Drawing.Color bg, System.Drawing.Color text, System.Drawing.Color accent)
+            {
+                _bgColor = bg;
+                _textColor = text;
+                _accentColor = accent;
+            }
+
+            public override System.Drawing.Color MenuItemSelected => _accentColor;
+            public override System.Drawing.Color MenuItemBorder => _accentColor;
+            public override System.Drawing.Color MenuBorder => _bgColor;
+            public override System.Drawing.Color ToolStripDropDownBackground => _bgColor;
+            public override System.Drawing.Color ImageMarginGradientBegin => _bgColor;
+            public override System.Drawing.Color ImageMarginGradientMiddle => _bgColor;
+            public override System.Drawing.Color ImageMarginGradientEnd => _bgColor;
+            public override System.Drawing.Color SeparatorDark => _textColor; // Use text color for separators
             public override System.Drawing.Color SeparatorLight => System.Drawing.Color.Transparent;
-            public override System.Drawing.Color MenuItemSelectedGradientBegin => System.Drawing.Color.FromArgb(99, 102, 241);
-            public override System.Drawing.Color MenuItemSelectedGradientEnd => System.Drawing.Color.FromArgb(99, 102, 241);
-            public override System.Drawing.Color MenuItemPressedGradientBegin => System.Drawing.Color.FromArgb(99, 102, 241);
-            public override System.Drawing.Color MenuItemPressedGradientEnd => System.Drawing.Color.FromArgb(99, 102, 241);
+            public override System.Drawing.Color MenuItemSelectedGradientBegin => _accentColor;
+            public override System.Drawing.Color MenuItemSelectedGradientEnd => _accentColor;
+            public override System.Drawing.Color MenuItemPressedGradientBegin => _accentColor;
+            public override System.Drawing.Color MenuItemPressedGradientEnd => _accentColor;
         }
 
         private void ShowWindow()
@@ -314,22 +367,27 @@ namespace Learnman.TrayApp
         {
             if (_isServerRunning)
             {
-                StatusDot.Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(46, 204, 113)); // Green
+                // RUNNING STATE
+                StatusDot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, "accent-success");
                 StatusText.Text = "RUNNING";
-                StatusText.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(46, 204, 113));
+                StatusText.SetResourceReference(TextBlock.ForegroundProperty, "accent-success");
+                
                 ToggleServerButton.Content = "STOP SERVER";
-                ToggleServerButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(231, 76, 60)); // Red
+                ToggleServerButton.SetResourceReference(System.Windows.Controls.Control.BackgroundProperty, "accent-danger");
                 
                 if (_startMenuItem != null) _startMenuItem.Enabled = false;
                 if (_stopMenuItem != null) _stopMenuItem.Enabled = true;
             }
             else
             {
-                StatusDot.Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(231, 76, 60)); // Red
+                // STOPPED STATE
+                StatusDot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, "accent-danger");
                 StatusText.Text = "STOPPED";
-                StatusText.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(231, 76, 60));
+                StatusText.SetResourceReference(TextBlock.ForegroundProperty, "accent-danger");
+                
                 ToggleServerButton.Content = "START SERVER";
-                ToggleServerButton.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(15, 52, 96)); // Blue
+                // Restore dynamic binding to accent-primary
+                ToggleServerButton.SetResourceReference(System.Windows.Controls.Control.BackgroundProperty, "accent-primary");
                 
                 if (_startMenuItem != null) _startMenuItem.Enabled = true;
                 if (_stopMenuItem != null) _stopMenuItem.Enabled = false;
