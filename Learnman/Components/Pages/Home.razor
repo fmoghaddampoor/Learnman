@@ -21,7 +21,7 @@
     <div class="form-group">
         <label>Password</label>
         <div class="password-wrapper">
-             <input type="@(ShowPassword ? "text" : "password")" @bind="Password" placeholder="••••••••" />
+             <input type="@(ShowPassword ? "text" : "password")" @bind="Password" placeholder="" />
              <button type="button" class="toggle-password" @onclick="TogglePassword">
                  @(ShowPassword ? "Hide" : "Show")
              </button>
@@ -52,6 +52,7 @@
         margin-bottom: 8px;
         color: var(--text-secondary);
         font-size: 0.9rem;
+        font-weight: 600;
     }
 
     .password-wrapper {
